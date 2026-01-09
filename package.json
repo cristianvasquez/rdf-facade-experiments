@@ -1,0 +1,34 @@
+{
+  "name": "rdf-facade-experiments",
+  "version": "1.0.0",
+  "description": "Facade-X experiments",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha 'test/**/*.test.js'"
+  },
+  "author": "Cristian Vasquez",
+  "license": "MIT",
+  "packageManager": "pnpm@10.14.0",
+  "dependencies": {
+    "@rdfjs/data-model": "^2.1.1",
+    "@rdfjs/serializer-turtle": "^1.1.5",
+    "n3": "^1.17.0",
+    "rdf-ext": "^2.6.0",
+    "readable-stream": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "stream-markdown-parser": "^0.0.57",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@comunica/query-sparql-rdfjs-lite": "^5.0.1",
+    "mocha": "^11.7.5"
+  },
+  "keywords": [
+    "rdf",
+    "json",
+    "triplification",
+    "facade-x",
+    "linked-data"
+  ]
+}
