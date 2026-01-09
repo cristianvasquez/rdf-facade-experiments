@@ -1,0 +1,41 @@
+import SerializerTurtle from '@rdfjs/serializer-turtle'
+import { ns } from './src/namespaces.js'
+import { createMarkdownToRdfStream } from './src/stream-markdown-to-rdf.js'
+
+function toPlain (prefixes) {
+  const result = []
+  for (const [key, value] of Object.entries({ ...prefixes })) {
+    result.push([key, value()])
+  }
+  return result
+}
+
+const markdown = `
+# Document Title
+
+This is a paragraph with **bold** and *italic* text.
+
+## Section 1
+
+A list:
+- Item 1
+- Item 2
+  - Nested item
+
+## Section 2
+
+A [link](http://example.com) and some \`code\`.
+`
+
+const serializer = new SerializerTurtle({ prefixes: toPlain(ns) })
+
+// Create a stream that converts markdown to RDF quads
+const quadStream = createMarkdownToRdfStream()
+
+// Pipe to the turtle serializer and then to stdout
+const output = serializer.import(quadStream)
+output.pipe(process.stdout)
+
+// Write the markdown to the stream
+quadStream.write(markdown)
+quadStream.end()
