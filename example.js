@@ -1,14 +1,6 @@
 import SerializerTurtle from '@rdfjs/serializer-turtle'
-import { ns } from './src/namespaces.js'
+import { nsArray } from './src/namespaces.js'
 import { createMarkdownToRdfStream } from './src/stream-markdown-to-rdf.js'
-
-function toPlain (prefixes) {
-  const result = []
-  for (const [key, value] of Object.entries({ ...prefixes })) {
-    result.push([key, value()])
-  }
-  return result
-}
 
 const markdown = `
 # Document Title
@@ -27,7 +19,7 @@ A list:
 A [link](http://example.com) and some \`code\`.
 `
 
-const serializer = new SerializerTurtle({ prefixes: toPlain(ns) })
+const serializer = new SerializerTurtle({ prefixes: nsArray })
 
 // Create a stream that converts markdown to RDF quads
 const quadStream = createMarkdownToRdfStream()

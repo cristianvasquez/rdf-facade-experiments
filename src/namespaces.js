@@ -4,6 +4,17 @@ const ns = {
   rdf: rdf.namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
   fx: rdf.namespace('http://sparql.xyz/facade-x/ns/'),
   md: rdf.namespace('http://example.org/markdown#'),
-
+  xyz: rdf.namespace('http://sparql.xyz/facade-x/data/'),
 }
-export { ns }
+
+function toPlain (prefixes) {
+  const result = []
+  for (const [key, value] of Object.entries({ ...prefixes })) {
+    result.push([key, value()])
+  }
+  return result
+}
+
+const nsArray = toPlain(ns)
+
+export { ns, nsArray }

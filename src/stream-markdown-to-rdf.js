@@ -1,6 +1,7 @@
 import rdf from 'rdf-ext'
 import { Transform } from 'readable-stream'
 import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
+import { parse as parseYaml } from 'yaml'
 import { ns } from './namespaces.js'
 
 /**
@@ -36,7 +37,84 @@ export function createMarkdownToRdfStream(options = {}) {
   }
 
   /**
-   * Processes a parsed node and its children recursively, emitting quads
+   * Builds a hierarchical tree based on heading levels
+   */
+  function buildHierarchy(nodes) {
+    const root = { type: 'document', children: [] }
+    const stack = [{ node: root, level: 0 }]
+
+    for (const node of nodes) {
+      if (node.type === 'heading') {
+        const level = parseInt(node.level || 1)
+
+        // Pop stack until we find the parent level
+        while (stack.length > 1 && stack[stack.length - 1].level >= level) {
+          stack.pop()
+        }
+
+        // Create section for this heading
+        const section = {
+          type: 'section',
+          heading: node,
+          content: []
+        }
+
+        // Add to parent's children
+        const parent = stack[stack.length - 1].node
+        if (!parent.children) parent.children = []
+        parent.children.push(section)
+
+        // Push this section onto stack
+        stack.push({ node: section, level })
+      } else {
+        // Add content to current section
+        const current = stack[stack.length - 1].node
+        if (!current.content) current.content = []
+        current.content.push(node)
+      }
+    }
+
+    return root
+  }
+
+  /**
+   * Convert YAML/JSON data to Facade-X RDF structure
+   */
+  function* yamlToFacadeX(data, parent, predicate) {
+    if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
+      // Primitive → literal
+      if (parent && predicate) {
+        yield rdf.quad(parent, predicate, rdf.literal(String(data)))
+      }
+      return null
+    }
+
+    const subject = createSubject()
+
+    // Link from parent
+    if (parent && predicate) {
+      yield rdf.quad(parent, predicate, subject)
+    }
+
+    if (Array.isArray(data)) {
+      // Array → RDF container with rdf:_1, rdf:_2, etc.
+      for (let i = 0; i < data.length; i++) {
+        const itemPredicate = rdf.namedNode(ns.rdf(`_${i + 1}`))
+        yield* yamlToFacadeX(data[i], subject, itemPredicate)
+      }
+    } else if (typeof data === 'object' && data !== null) {
+      // Object → properties in xyz: namespace
+      for (const [key, value] of Object.entries(data)) {
+        const pred = rdf.namedNode(ns.xyz(key))
+        yield* yamlToFacadeX(value, subject, pred)
+      }
+    }
+
+    return subject
+  }
+
+  /**
+   * Processes a node and its children recursively, emitting quads
    */
   function* processNode(node, parent = null, index = null) {
     const subject = createSubject()
@@ -57,9 +135,11 @@ export function createMarkdownToRdfStream(options = {}) {
       )
     }
 
-    // Add node properties as literals
+    // Add node properties as literals (skip structural properties)
     for (const [key, value] of Object.entries(node)) {
-      if (key === 'type' || key === 'children' || key === 'items' || key === 'raw' || key === 'loading') {
+      if (key === 'type' || key === 'children' || key === 'items' ||
+          key === 'heading' || key === 'content' || key === 'raw' ||
+          key === 'loading' || key === 'level') {  // Skip level - it's implicit in hierarchy
         continue
       }
 
@@ -82,10 +162,34 @@ export function createMarkdownToRdfStream(options = {}) {
       )
     }
 
+    // Parse YAML/JSON code blocks
+    if (node.type === 'code_block' && (node.language === 'yaml' || node.language === 'json')) {
+      try {
+        const data = node.language === 'yaml' ? parseYaml(node.code) : JSON.parse(node.code)
+        yield* yamlToFacadeX(data, subject, rdf.namedNode(ns.fx('data')))
+      } catch (error) {
+        // If parsing fails, just skip the data property
+        console.warn(`Failed to parse ${node.language} code block:`, error.message)
+      }
+    }
+
+    // Process heading (for sections)
+    if (node.heading) {
+      yield* processNode(node.heading, subject, 0)
+    }
+
+    // Process content (for sections)
+    if (node.content && Array.isArray(node.content)) {
+      for (let i = 0; i < node.content.length; i++) {
+        yield* processNode(node.content[i], subject, i + (node.heading ? 1 : 0))
+      }
+    }
+
     // Process children
     if (node.children && Array.isArray(node.children)) {
+      const startIdx = (node.heading ? 1 : 0) + (node.content ? node.content.length : 0)
       for (let i = 0; i < node.children.length; i++) {
-        yield* processNode(node.children[i], subject, i)
+        yield* processNode(node.children[i], subject, startIdx + i)
       }
     }
 
@@ -111,11 +215,12 @@ export function createMarkdownToRdfStream(options = {}) {
         // Parse the complete markdown when stream ends
         const nodes = parseMarkdownToStructure(buffer, md, { final: true })
 
-        // Process each top-level node and emit quads
-        for (let i = 0; i < nodes.length; i++) {
-          for (const quad of processNode(nodes[i], null, null)) {
-            this.push(quad)
-          }
+        // Build hierarchical tree based on heading levels
+        const tree = buildHierarchy(nodes)
+
+        // Process the tree and emit quads
+        for (const quad of processNode(tree)) {
+          this.push(quad)
         }
 
         callback()

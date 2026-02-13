@@ -1,0 +1,162 @@
+import { readFileSync } from 'fs'
+import { parse as parseYaml } from 'yaml'
+import { markdownToRdf } from '../src/stream-markdown-to-rdf.js'
+import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
+import { Store } from 'n3'
+import SerializerTurtle from '@rdfjs/serializer-turtle'
+import { nsArray } from '../src/namespaces.js'
+import { Readable } from 'readable-stream'
+
+/**
+ * Extract frontmatter from markdown
+ */
+function extractFrontmatter(markdown) {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
+  const match = markdown.match(frontmatterRegex)
+
+  if (!match) {
+    return { frontmatter: null, content: markdown }
+  }
+
+  const frontmatter = parseYaml(match[1])
+  const content = match[2]
+
+  return { frontmatter, content }
+}
+
+/**
+ * Process a markdown example file
+ */
+export async function processExample(filePath, options = {}) {
+  const {
+    showFacade = false,
+    showConstruct = false,
+    executeConstruct = true,
+    verbose = false
+  } = options
+
+  // Read markdown file
+  const markdown = readFileSync(filePath, 'utf-8')
+
+  // Extract frontmatter and content
+  const { frontmatter, content } = extractFrontmatter(markdown)
+
+  if (verbose) {
+    console.log('=== MARKDOWN CONTENT ===')
+    console.log(content)
+    console.log()
+  }
+
+  // Generate facade RDF
+  if (verbose) console.log('Generating facade RDF...')
+  const facadeQuads = await markdownToRdf(content)
+
+  if (showFacade || verbose) {
+    console.log('\n=== FACADE RDF ===')
+    console.log(`Total quads: ${facadeQuads.length}\n`)
+    await serializeQuads(facadeQuads)
+    console.log()
+  }
+
+  // Check for CONSTRUCT query
+  if (!frontmatter || !frontmatter.construct) {
+    console.log('No CONSTRUCT query found in frontmatter')
+    return { facadeQuads }
+  }
+
+  const constructQuery = frontmatter.construct
+
+  if (showConstruct || verbose) {
+    console.log('=== CONSTRUCT QUERY ===')
+    console.log(constructQuery)
+    console.log()
+  }
+
+  // Execute CONSTRUCT
+  if (!executeConstruct) {
+    return { facadeQuads, constructQuery }
+  }
+
+  if (verbose) console.log('Executing CONSTRUCT query...')
+
+  // Load facade into N3 store
+  const store = new Store(facadeQuads)
+
+  // Execute CONSTRUCT using Comunica
+  const engine = new QueryEngine()
+
+  try {
+    const result = await engine.queryQuads(constructQuery, {
+      sources: [store]
+    })
+
+    const semanticQuads = await result.toArray()
+
+    console.log('\n=== SEMANTIC RDF (OUTPUT) ===')
+    console.log(`Total quads: ${semanticQuads.length}\n`)
+    await serializeQuads(semanticQuads)
+
+    return { facadeQuads, constructQuery, semanticQuads }
+  } catch (error) {
+    console.error('\n=== ERROR EXECUTING CONSTRUCT ===')
+    console.error(error.message)
+    if (verbose) {
+      console.error(error.stack)
+    }
+    throw error
+  }
+}
+
+/**
+ * Serialize quads to Turtle format
+ */
+async function serializeQuads(quads) {
+  const serializer = new SerializerTurtle({ prefixes: nsArray })
+  const quadStream = serializer.import(Readable.from(quads))
+
+  return new Promise((resolve, reject) => {
+    quadStream.on('data', (chunk) => {
+      process.stdout.write(chunk)
+    })
+    quadStream.on('end', resolve)
+    quadStream.on('error', reject)
+  })
+}
+
+/**
+ * CLI entry point
+ */
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const args = process.argv.slice(2)
+
+  if (args.length === 0) {
+    console.log('Usage: node test/process-example.js <example-file> [options]')
+    console.log('')
+    console.log('Options:')
+    console.log('  --facade         Show facade RDF')
+    console.log('  --construct      Show CONSTRUCT query')
+    console.log('  --no-execute     Skip CONSTRUCT execution')
+    console.log('  --verbose        Show all steps')
+    console.log('')
+    console.log('Examples:')
+    console.log('  node test/process-example.js examples/01-dream-team-emphasis/example.md')
+    console.log('  node test/process-example.js examples/01-dream-team-emphasis/example.md --facade')
+    console.log('  node test/process-example.js examples/01-dream-team-emphasis/example.md --verbose')
+    process.exit(1)
+  }
+
+  const filePath = args[0]
+  const options = {
+    showFacade: args.includes('--facade'),
+    showConstruct: args.includes('--construct'),
+    executeConstruct: !args.includes('--no-execute'),
+    verbose: args.includes('--verbose')
+  }
+
+  try {
+    await processExample(filePath, options)
+  } catch (error) {
+    console.error('Error processing example:', error.message)
+    process.exit(1)
+  }
+}
