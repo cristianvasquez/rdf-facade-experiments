@@ -3,9 +3,7 @@ import { parse as parseYaml } from 'yaml'
 import { markdownToRdf } from '../src/stream-markdown-to-rdf.js'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import { Store } from 'n3'
-import SerializerTurtle from '@rdfjs/serializer-turtle'
-import { nsArray } from '../src/namespaces.js'
-import { Readable } from 'readable-stream'
+import { printQuads } from '../src/serialize-utils.js'
 
 /**
  * Extract frontmatter from markdown
@@ -54,7 +52,7 @@ export async function processExample(filePath, options = {}) {
   if (showFacade || verbose) {
     console.log('\n=== FACADE RDF ===')
     console.log(`Total quads: ${facadeQuads.length}\n`)
-    await serializeQuads(facadeQuads)
+    await printQuads(facadeQuads)
     console.log()
   }
 
@@ -94,7 +92,7 @@ export async function processExample(filePath, options = {}) {
 
     console.log('\n=== SEMANTIC RDF (OUTPUT) ===')
     console.log(`Total quads: ${semanticQuads.length}\n`)
-    await serializeQuads(semanticQuads)
+    await printQuads(semanticQuads)
 
     return { facadeQuads, constructQuery, semanticQuads }
   } catch (error) {
@@ -105,22 +103,6 @@ export async function processExample(filePath, options = {}) {
     }
     throw error
   }
-}
-
-/**
- * Serialize quads to Turtle format
- */
-async function serializeQuads(quads) {
-  const serializer = new SerializerTurtle({ prefixes: nsArray })
-  const quadStream = serializer.import(Readable.from(quads))
-
-  return new Promise((resolve, reject) => {
-    quadStream.on('data', (chunk) => {
-      process.stdout.write(chunk)
-    })
-    quadStream.on('end', resolve)
-    quadStream.on('error', reject)
-  })
 }
 
 /**

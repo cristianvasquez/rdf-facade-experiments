@@ -1,7 +1,6 @@
 import rdf from 'rdf-ext'
 import { Transform } from 'readable-stream'
 import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
-import { parse as parseYaml } from 'yaml'
 import { ns } from './namespaces.js'
 
 /**
@@ -78,42 +77,6 @@ export function createMarkdownToRdfStream(options = {}) {
   }
 
   /**
-   * Convert YAML/JSON data to Facade-X RDF structure
-   */
-  function* yamlToFacadeX(data, parent, predicate) {
-    if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
-      // Primitive → literal
-      if (parent && predicate) {
-        yield rdf.quad(parent, predicate, rdf.literal(String(data)))
-      }
-      return null
-    }
-
-    const subject = createSubject()
-
-    // Link from parent
-    if (parent && predicate) {
-      yield rdf.quad(parent, predicate, subject)
-    }
-
-    if (Array.isArray(data)) {
-      // Array → RDF container with rdf:_1, rdf:_2, etc.
-      for (let i = 0; i < data.length; i++) {
-        const itemPredicate = rdf.namedNode(ns.rdf(`_${i + 1}`))
-        yield* yamlToFacadeX(data[i], subject, itemPredicate)
-      }
-    } else if (typeof data === 'object' && data !== null) {
-      // Object → properties in xyz: namespace
-      for (const [key, value] of Object.entries(data)) {
-        const pred = rdf.namedNode(ns.xyz(key))
-        yield* yamlToFacadeX(value, subject, pred)
-      }
-    }
-
-    return subject
-  }
-
-  /**
    * Processes a node and its children recursively, emitting quads
    */
   function* processNode(node, parent = null, index = null) {
@@ -160,17 +123,6 @@ export function createMarkdownToRdfStream(options = {}) {
         rdf.namedNode(ns.fx('raw')),
         rdf.literal(node.raw)
       )
-    }
-
-    // Parse YAML/JSON code blocks
-    if (node.type === 'code_block' && (node.language === 'yaml' || node.language === 'json')) {
-      try {
-        const data = node.language === 'yaml' ? parseYaml(node.code) : JSON.parse(node.code)
-        yield* yamlToFacadeX(data, subject, rdf.namedNode(ns.fx('data')))
-      } catch (error) {
-        // If parsing fails, just skip the data property
-        console.warn(`Failed to parse ${node.language} code block:`, error.message)
-      }
     }
 
     // Process heading (for sections)

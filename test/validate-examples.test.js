@@ -7,7 +7,6 @@ const EXAMPLES = [
   '01-dream-team-emphasis',
   '02-entities-explicit',
   '03-nested-lists',
-  '06-yaml-blocks',
 ]
 
 describe('Example Validation', () => {
