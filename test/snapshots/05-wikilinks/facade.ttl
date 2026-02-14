@@ -1,0 +1,320 @@
+@prefix fxr: <http://example.org/facade-remark#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rmk: <http://example.org/remark#>.
+
+[ a rmk:root;
+  fxr:children [ a rmk:heading;
+      fxr:children [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 13;
+                  fxr:line 2;
+                  fxr:offset 13
+                ];
+              fxr:start [
+                  fxr:column 3;
+                  fxr:line 2;
+                  fxr:offset 3
+                ]
+            ];
+          fxr:value "Team Alpha"
+        ];
+      fxr:depth "1";
+      fxr:position [
+          fxr:end [
+              fxr:column 13;
+              fxr:line 2;
+              fxr:offset 13
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 2;
+              fxr:offset 1
+            ]
+        ]
+    ], [ a rmk:paragraph;
+      fxr:children [ a rmk:link;
+          fxr:children [ a rmk:text;
+              fxr:position [
+                  fxr:end [
+                      fxr:column 5;
+                      fxr:line 4;
+                      fxr:offset 19
+                    ];
+                  fxr:start [
+                      fxr:column 2;
+                      fxr:line 4;
+                      fxr:offset 16
+                    ]
+                ];
+              fxr:value "Bob"
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 15;
+                  fxr:line 4;
+                  fxr:offset 29
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 4;
+                  fxr:offset 15
+                ]
+            ];
+          fxr:url "urn:Bob"
+        ], [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 22;
+                  fxr:line 4;
+                  fxr:offset 36
+                ];
+              fxr:start [
+                  fxr:column 15;
+                  fxr:line 4;
+                  fxr:offset 29
+                ]
+            ];
+          fxr:value " knows "
+        ], [ a rmk:link;
+          fxr:children [ a rmk:text;
+              fxr:position [
+                  fxr:end [
+                      fxr:column 28;
+                      fxr:line 4;
+                      fxr:offset 42
+                    ];
+                  fxr:start [
+                      fxr:column 23;
+                      fxr:line 4;
+                      fxr:offset 37
+                    ]
+                ];
+              fxr:value "Alice"
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 40;
+                  fxr:line 4;
+                  fxr:offset 54
+                ];
+              fxr:start [
+                  fxr:column 22;
+                  fxr:line 4;
+                  fxr:offset 36
+                ]
+            ];
+          fxr:url "urn:Alice"
+        ];
+      fxr:position [
+          fxr:end [
+              fxr:column 40;
+              fxr:line 4;
+              fxr:offset 54
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 4;
+              fxr:offset 15
+            ]
+        ]
+    ], [ a rmk:paragraph;
+      fxr:children [ a rmk:link;
+          fxr:children [ a rmk:text;
+              fxr:position [
+                  fxr:end [
+                      fxr:column 7;
+                      fxr:line 6;
+                      fxr:offset 62
+                    ];
+                  fxr:start [
+                      fxr:column 2;
+                      fxr:line 6;
+                      fxr:offset 57
+                    ]
+                ];
+              fxr:value "Alice"
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 19;
+                  fxr:line 6;
+                  fxr:offset 74
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 6;
+                  fxr:offset 56
+                ]
+            ];
+          fxr:url "urn:Alice"
+        ], [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 26;
+                  fxr:line 6;
+                  fxr:offset 81
+                ];
+              fxr:start [
+                  fxr:column 19;
+                  fxr:line 6;
+                  fxr:offset 74
+                ]
+            ];
+          fxr:value " likes "
+        ], [ a rmk:link;
+          fxr:children [ a rmk:text;
+              fxr:position [
+                  fxr:end [
+                      fxr:column 35;
+                      fxr:line 6;
+                      fxr:offset 90
+                    ];
+                  fxr:start [
+                      fxr:column 27;
+                      fxr:line 6;
+                      fxr:offset 82
+                    ]
+                ];
+              fxr:value "Icecream"
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 50;
+                  fxr:line 6;
+                  fxr:offset 105
+                ];
+              fxr:start [
+                  fxr:column 26;
+                  fxr:line 6;
+                  fxr:offset 81
+                ]
+            ];
+          fxr:url "urn:Icecream"
+        ];
+      fxr:position [
+          fxr:end [
+              fxr:column 50;
+              fxr:line 6;
+              fxr:offset 105
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 6;
+              fxr:offset 56
+            ]
+        ]
+    ], [ a rmk:paragraph;
+      fxr:children [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 10;
+                  fxr:line 8;
+                  fxr:offset 116
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 8;
+                  fxr:offset 107
+                ]
+            ];
+          fxr:value "Members: "
+        ], [ a rmk:link;
+          fxr:children [ a rmk:text;
+              fxr:position [
+                  fxr:end [
+                      fxr:column 14;
+                      fxr:line 8;
+                      fxr:offset 120
+                    ];
+                  fxr:start [
+                      fxr:column 11;
+                      fxr:line 8;
+                      fxr:offset 117
+                    ]
+                ];
+              fxr:value "Bob"
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 24;
+                  fxr:line 8;
+                  fxr:offset 130
+                ];
+              fxr:start [
+                  fxr:column 10;
+                  fxr:line 8;
+                  fxr:offset 116
+                ]
+            ];
+          fxr:url "urn:Bob"
+        ], [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 26;
+                  fxr:line 8;
+                  fxr:offset 132
+                ];
+              fxr:start [
+                  fxr:column 24;
+                  fxr:line 8;
+                  fxr:offset 130
+                ]
+            ];
+          fxr:value ", "
+        ], [ a rmk:link;
+          fxr:children [ a rmk:text;
+              fxr:position [
+                  fxr:end [
+                      fxr:column 32;
+                      fxr:line 8;
+                      fxr:offset 138
+                    ];
+                  fxr:start [
+                      fxr:column 27;
+                      fxr:line 8;
+                      fxr:offset 133
+                    ]
+                ];
+              fxr:value "Alice"
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 44;
+                  fxr:line 8;
+                  fxr:offset 150
+                ];
+              fxr:start [
+                  fxr:column 26;
+                  fxr:line 8;
+                  fxr:offset 132
+                ]
+            ];
+          fxr:url "urn:Alice"
+        ];
+      fxr:position [
+          fxr:end [
+              fxr:column 44;
+              fxr:line 8;
+              fxr:offset 150
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 8;
+              fxr:offset 107
+            ]
+        ]
+    ];
+  fxr:position [
+      fxr:end [
+          fxr:column 1;
+          fxr:line 9;
+          fxr:offset 151
+        ];
+      fxr:start [
+          fxr:column 1;
+          fxr:line 1;
+          fxr:offset 0
+        ]
+    ]
+].

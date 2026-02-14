@@ -1,0 +1,670 @@
+@prefix fxr: <http://example.org/facade-remark#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rmk: <http://example.org/remark#>.
+
+[ a rmk:root;
+  fxr:children [ a rmk:heading;
+      fxr:children [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 11;
+                  fxr:line 2;
+                  fxr:offset 11
+                ];
+              fxr:start [
+                  fxr:column 3;
+                  fxr:line 2;
+                  fxr:offset 3
+                ]
+            ];
+          fxr:value "Entities"
+        ];
+      fxr:depth "1";
+      fxr:position [
+          fxr:end [
+              fxr:column 11;
+              fxr:line 2;
+              fxr:offset 11
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 2;
+              fxr:offset 1
+            ]
+        ]
+    ], [ a rmk:heading;
+      fxr:children [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 9;
+                  fxr:line 4;
+                  fxr:offset 21
+                ];
+              fxr:start [
+                  fxr:column 4;
+                  fxr:line 4;
+                  fxr:offset 16
+                ]
+            ];
+          fxr:value "Teams"
+        ];
+      fxr:depth "2";
+      fxr:position [
+          fxr:end [
+              fxr:column 9;
+              fxr:line 4;
+              fxr:offset 21
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 4;
+              fxr:offset 13
+            ]
+        ]
+    ], [ a rmk:table;
+      fxr:align "null";
+      fxr:children [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 9;
+                          fxr:line 6;
+                          fxr:offset 31
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 6;
+                          fxr:offset 25
+                        ]
+                    ];
+                  fxr:value "Person"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 6;
+                      fxr:offset 32
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 6;
+                      fxr:offset 23
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 16;
+                          fxr:line 6;
+                          fxr:offset 38
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 6;
+                          fxr:offset 34
+                        ]
+                    ];
+                  fxr:value "Team"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 24;
+                      fxr:line 6;
+                      fxr:offset 46
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 6;
+                      fxr:offset 32
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 24;
+                  fxr:line 6;
+                  fxr:offset 46
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 6;
+                  fxr:offset 23
+                ]
+            ]
+        ], [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 6;
+                          fxr:line 8;
+                          fxr:offset 76
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 8;
+                          fxr:offset 73
+                        ]
+                    ];
+                  fxr:value "Bob"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 8;
+                      fxr:offset 80
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 8;
+                      fxr:offset 71
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 22;
+                          fxr:line 8;
+                          fxr:offset 92
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 8;
+                          fxr:offset 82
+                        ]
+                    ];
+                  fxr:value "Team Alpha"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 24;
+                      fxr:line 8;
+                      fxr:offset 94
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 8;
+                      fxr:offset 80
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 24;
+                  fxr:line 8;
+                  fxr:offset 94
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 8;
+                  fxr:offset 71
+                ]
+            ]
+        ], [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 8;
+                          fxr:line 9;
+                          fxr:offset 102
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 9;
+                          fxr:offset 97
+                        ]
+                    ];
+                  fxr:value "Alice"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 9;
+                      fxr:offset 104
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 9;
+                      fxr:offset 95
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 22;
+                          fxr:line 9;
+                          fxr:offset 116
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 9;
+                          fxr:offset 106
+                        ]
+                    ];
+                  fxr:value "Team Alpha"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 24;
+                      fxr:line 9;
+                      fxr:offset 118
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 9;
+                      fxr:offset 104
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 24;
+                  fxr:line 9;
+                  fxr:offset 118
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 9;
+                  fxr:offset 95
+                ]
+            ]
+        ];
+      fxr:position [
+          fxr:end [
+              fxr:column 24;
+              fxr:line 9;
+              fxr:offset 118
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 6;
+              fxr:offset 23
+            ]
+        ]
+    ], [ a rmk:heading;
+      fxr:children [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 13;
+                  fxr:line 11;
+                  fxr:offset 132
+                ];
+              fxr:start [
+                  fxr:column 4;
+                  fxr:line 11;
+                  fxr:offset 123
+                ]
+            ];
+          fxr:value "Relations"
+        ];
+      fxr:depth "2";
+      fxr:position [
+          fxr:end [
+              fxr:column 13;
+              fxr:line 11;
+              fxr:offset 132
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 11;
+              fxr:offset 120
+            ]
+        ]
+    ], [ a rmk:table;
+      fxr:align "null";
+      fxr:children [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 9;
+                          fxr:line 13;
+                          fxr:offset 142
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 13;
+                          fxr:offset 136
+                        ]
+                    ];
+                  fxr:value "Person"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 13;
+                      fxr:offset 143
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 13;
+                      fxr:offset 134
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 17;
+                          fxr:line 13;
+                          fxr:offset 150
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 13;
+                          fxr:offset 145
+                        ]
+                    ];
+                  fxr:value "Knows"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 19;
+                      fxr:line 13;
+                      fxr:offset 152
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 13;
+                      fxr:offset 143
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 19;
+                  fxr:line 13;
+                  fxr:offset 152
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 13;
+                  fxr:offset 134
+                ]
+            ]
+        ], [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 6;
+                          fxr:line 15;
+                          fxr:offset 177
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 15;
+                          fxr:offset 174
+                        ]
+                    ];
+                  fxr:value "Bob"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 15;
+                      fxr:offset 181
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 15;
+                      fxr:offset 172
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 17;
+                          fxr:line 15;
+                          fxr:offset 188
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 15;
+                          fxr:offset 183
+                        ]
+                    ];
+                  fxr:value "Alice"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 19;
+                      fxr:line 15;
+                      fxr:offset 190
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 15;
+                      fxr:offset 181
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 19;
+                  fxr:line 15;
+                  fxr:offset 190
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 15;
+                  fxr:offset 172
+                ]
+            ]
+        ];
+      fxr:position [
+          fxr:end [
+              fxr:column 19;
+              fxr:line 15;
+              fxr:offset 190
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 13;
+              fxr:offset 134
+            ]
+        ]
+    ], [ a rmk:heading;
+      fxr:children [ a rmk:text;
+          fxr:position [
+              fxr:end [
+                  fxr:column 15;
+                  fxr:line 17;
+                  fxr:offset 206
+                ];
+              fxr:start [
+                  fxr:column 4;
+                  fxr:line 17;
+                  fxr:offset 195
+                ]
+            ];
+          fxr:value "Preferences"
+        ];
+      fxr:depth "2";
+      fxr:position [
+          fxr:end [
+              fxr:column 15;
+              fxr:line 17;
+              fxr:offset 206
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 17;
+              fxr:offset 192
+            ]
+        ]
+    ], [ a rmk:table;
+      fxr:align "null";
+      fxr:children [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 9;
+                          fxr:line 19;
+                          fxr:offset 216
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 19;
+                          fxr:offset 210
+                        ]
+                    ];
+                  fxr:value "Person"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 19;
+                      fxr:offset 217
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 19;
+                      fxr:offset 208
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 17;
+                          fxr:line 19;
+                          fxr:offset 224
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 19;
+                          fxr:offset 219
+                        ]
+                    ];
+                  fxr:value "Likes"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 22;
+                      fxr:line 19;
+                      fxr:offset 229
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 19;
+                      fxr:offset 217
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 22;
+                  fxr:line 19;
+                  fxr:offset 229
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 19;
+                  fxr:offset 208
+                ]
+            ]
+        ], [ a rmk:tableRow;
+          fxr:children [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 8;
+                          fxr:line 21;
+                          fxr:offset 259
+                        ];
+                      fxr:start [
+                          fxr:column 3;
+                          fxr:line 21;
+                          fxr:offset 254
+                        ]
+                    ];
+                  fxr:value "Alice"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 10;
+                      fxr:line 21;
+                      fxr:offset 261
+                    ];
+                  fxr:start [
+                      fxr:column 1;
+                      fxr:line 21;
+                      fxr:offset 252
+                    ]
+                ]
+            ], [ a rmk:tableCell;
+              fxr:children [ a rmk:text;
+                  fxr:position [
+                      fxr:end [
+                          fxr:column 20;
+                          fxr:line 21;
+                          fxr:offset 271
+                        ];
+                      fxr:start [
+                          fxr:column 12;
+                          fxr:line 21;
+                          fxr:offset 263
+                        ]
+                    ];
+                  fxr:value "Icecream"
+                ];
+              fxr:position [
+                  fxr:end [
+                      fxr:column 22;
+                      fxr:line 21;
+                      fxr:offset 273
+                    ];
+                  fxr:start [
+                      fxr:column 10;
+                      fxr:line 21;
+                      fxr:offset 261
+                    ]
+                ]
+            ];
+          fxr:position [
+              fxr:end [
+                  fxr:column 22;
+                  fxr:line 21;
+                  fxr:offset 273
+                ];
+              fxr:start [
+                  fxr:column 1;
+                  fxr:line 21;
+                  fxr:offset 252
+                ]
+            ]
+        ];
+      fxr:position [
+          fxr:end [
+              fxr:column 22;
+              fxr:line 21;
+              fxr:offset 273
+            ];
+          fxr:start [
+              fxr:column 1;
+              fxr:line 19;
+              fxr:offset 208
+            ]
+        ]
+    ];
+  fxr:position [
+      fxr:end [
+          fxr:column 1;
+          fxr:line 22;
+          fxr:offset 274
+        ];
+      fxr:start [
+          fxr:column 1;
+          fxr:line 1;
+          fxr:offset 0
+        ]
+    ]
+].

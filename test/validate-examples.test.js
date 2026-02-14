@@ -7,6 +7,8 @@ const EXAMPLES = [
   '01-team-alpha-emphasis',
   '02-entities-explicit',
   '03-nested-lists',
+  '04-tables',
+  '05-wikilinks',
 ]
 
 const UPDATE_SNAPSHOTS = shouldUpdateSnapshots()
