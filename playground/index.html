@@ -9,7 +9,12 @@
 <body>
   <div class="container">
     <header>
-      <h1>🔄 Markdown to RDF Playground</h1>
+      <div class="header-top">
+        <h1>🔄 Markdown to RDF Playground</h1>
+        <button id="layout-toggle" class="layout-toggle" title="Toggle layout">
+          <span class="layout-icon">⚏</span> Layout
+        </button>
+      </div>
       <p class="intro">
         <strong>Literate RDF authoring</strong> through markdown: author semantic graphs using familiar markdown syntax.
         The <strong>facade</strong> is a general intermediate representation of the markdown structure.
@@ -27,51 +32,70 @@
     </div>
 
     <div class="pipeline">
-      <div class="pipeline-step markdown">Markdown<br>Input</div>
+      <div class="pipeline-step markdown" data-toggle="markdown" title="Click to toggle panel">Markdown<br>Input</div>
       <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step facade">Facade<br>RDF</div>
+      <div class="pipeline-step facade" data-toggle="facade" title="Click to toggle panel">Facade<br>RDF</div>
       <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step sparql">SPARQL<br>Transform</div>
+      <div class="pipeline-step sparql" data-toggle="sparql" title="Click to toggle panel">SPARQL<br>Transform</div>
       <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step semantic">Target<br>RDF</div>
+      <div class="pipeline-step semantic" data-toggle="semantic" title="Click to toggle panel">Target<br>RDF</div>
     </div>
 
-    <div class="workspace">
-      <div class="panel">
+    <div class="workspace" data-layout="horizontal">
+      <div class="panel" data-panel="markdown">
         <div class="panel-header markdown">
-          Markdown Input
-          <span class="badge">editable</span>
+          <span class="panel-title" data-maximize="markdown" title="Click to maximize/restore">
+            Markdown Input
+            <span class="badge">editable</span>
+          </span>
+          <button class="panel-toggle" data-target="markdown" title="Toggle panel">▼</button>
         </div>
         <div class="panel-content">
           <textarea id="markdown-input" spellcheck="false"></textarea>
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel" data-panel="facade">
         <div class="panel-header facade">
-          Facade RDF
-          <span class="badge">intermediate</span>
+          <span class="panel-title" data-maximize="facade" title="Click to maximize/restore">
+            Facade RDF
+            <span class="badge">intermediate</span>
+          </span>
+          <label class="panel-option" title="Use numbered predicates (rdf:_1, rdf:_2) instead of rdfs:member">
+            <input type="checkbox" id="preserve-order" checked>
+            <span>Preserve order</span>
+          </label>
+          <button class="panel-toggle" data-target="facade" title="Toggle panel">▼</button>
         </div>
         <div class="panel-content">
           <pre><code id="facade-output" class="language-turtle"></code></pre>
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel" data-panel="sparql">
+        <div class="panel-header sparql">
+          <span class="panel-title" data-maximize="sparql" title="Click to maximize/restore">
+            SPARQL CONSTRUCT
+            <span class="badge">mapping</span>
+          </span>
+          <button class="panel-toggle" data-target="sparql" title="Toggle panel">▼</button>
+        </div>
+        <div class="panel-content">
+          <pre><code id="sparql-query"></code></pre>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="semantic">
         <div class="panel-header semantic">
-          Target RDF
-          <span class="badge">output</span>
+          <span class="panel-title" data-maximize="semantic" title="Click to maximize/restore">
+            Target RDF
+            <span class="badge">output</span>
+          </span>
+          <button class="panel-toggle" data-target="semantic" title="Toggle panel">▼</button>
         </div>
         <div class="panel-content">
           <pre><code id="semantic-output" class="language-turtle"></code></pre>
         </div>
-      </div>
-    </div>
-
-    <div class="query-panel">
-      <div class="query-header">SPARQL CONSTRUCT Mapping</div>
-      <div class="query-content">
-        <pre><code id="sparql-query"></code></pre>
       </div>
     </div>
   </div>

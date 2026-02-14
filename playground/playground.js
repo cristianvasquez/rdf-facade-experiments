@@ -495,6 +495,14 @@ async function processMarkdown(markdown, sparqlQuery, options = {}) {
   }
 }
 
+// Get current options
+function getOptions() {
+  const preserveOrder = document.getElementById('preserve-order').checked;
+  return {
+    useRdfsMember: !preserveOrder  // preserve-order: true → useRdfsMember: false
+  };
+}
+
 async function updateDisplay() {
   console.log('updateDisplay called, currentExample:', currentExample);
   if (isProcessing) {
@@ -520,7 +528,7 @@ async function updateDisplay() {
     const { facadeTurtle, semanticTurtle } = await processMarkdown(
       markdown,
       example.sparql,
-      { useRdfsMember: example.useRdfsMember }
+      getOptions()
     );
     console.log('Processing complete - Facade:', facadeTurtle.length, 'chars, Semantic:', semanticTurtle.length, 'chars');
 
@@ -568,7 +576,7 @@ document.getElementById('markdown-input').addEventListener('input', async () => 
       const { facadeTurtle, semanticTurtle } = await processMarkdown(
         markdown,
         example.sparql,
-        { useRdfsMember: example.useRdfsMember }
+        getOptions()
       );
 
       // Update both at once to avoid flickering
@@ -587,6 +595,96 @@ document.getElementById('markdown-input').addEventListener('input', async () => 
     }
   }, 500); // Reduced debounce since processing is faster now
 });
+
+// Preserve order toggle
+document.getElementById('preserve-order').addEventListener('change', () => {
+  updateDisplay();
+});
+
+// Sync pipeline step visual state with panel state
+function syncPipelineSteps() {
+  document.querySelectorAll('.pipeline-step[data-toggle]').forEach(step => {
+    const target = step.dataset.toggle;
+    const panel = document.querySelector(`[data-panel="${target}"]`);
+    if (panel.classList.contains('collapsed')) {
+      step.classList.add('collapsed');
+    } else {
+      step.classList.remove('collapsed');
+    }
+  });
+}
+
+// Toggle panel and sync pipeline
+function togglePanel(target) {
+  const panel = document.querySelector(`[data-panel="${target}"]`);
+  panel.classList.toggle('collapsed');
+  syncPipelineSteps();
+}
+
+// Maximize/restore panel
+function toggleMaximize(target) {
+  const panel = document.querySelector(`[data-panel="${target}"]`);
+  const workspace = document.querySelector('.workspace');
+
+  if (panel.classList.contains('maximized')) {
+    // Restore: remove maximized state
+    panel.classList.remove('maximized');
+    workspace.classList.remove('has-maximized');
+  } else {
+    // Maximize: hide others, show this one
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('maximized'));
+    panel.classList.remove('collapsed'); // Ensure it's not collapsed
+    panel.classList.add('maximized');
+    workspace.classList.add('has-maximized');
+    syncPipelineSteps();
+  }
+}
+
+// Layout toggle (horizontal/vertical)
+const layoutToggle = document.getElementById('layout-toggle');
+const workspace = document.querySelector('.workspace');
+
+layoutToggle.addEventListener('click', () => {
+  const currentLayout = workspace.dataset.layout;
+  const newLayout = currentLayout === 'horizontal' ? 'vertical' : 'horizontal';
+  workspace.dataset.layout = newLayout;
+  layoutToggle.querySelector('.layout-icon').textContent = newLayout === 'horizontal' ? '⚏' : '☰';
+});
+
+// Panel toggles (collapse/expand) from header buttons
+document.querySelectorAll('.panel-toggle').forEach(toggle => {
+  toggle.addEventListener('click', () => {
+    togglePanel(toggle.dataset.target);
+  });
+});
+
+// Pipeline step toggles
+document.querySelectorAll('.pipeline-step[data-toggle]').forEach(step => {
+  step.addEventListener('click', () => {
+    togglePanel(step.dataset.toggle);
+  });
+});
+
+// Panel title maximize/restore
+document.querySelectorAll('.panel-title[data-maximize]').forEach(title => {
+  title.addEventListener('click', () => {
+    toggleMaximize(title.dataset.maximize);
+  });
+});
+
+// ESC key to restore from maximized state
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const maximizedPanel = document.querySelector('.panel.maximized');
+    if (maximizedPanel) {
+      const target = maximizedPanel.dataset.panel;
+      toggleMaximize(target);
+    }
+  }
+});
+
+// Initialize pipeline state
+syncPipelineSteps();
 
 // Initial load - call directly since module loads after DOM
 if (document.readyState === 'loading') {
