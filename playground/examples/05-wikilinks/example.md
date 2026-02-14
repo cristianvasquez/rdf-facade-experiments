@@ -1,11 +1,10 @@
 ---
-title: Wikilinks
-description: Using [[wikilinks]] to reference entities
-ignore: true
-preserve-order: true
+title: Links
+description: Using markdown links [text](urn:entity) to reference entities
+facade: facade-remark
 construct: |
-  PREFIX md: <http://example.org/markdown#>
-  PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+  PREFIX rmk: <http://example.org/remark#>
+  PREFIX fxr: <http://example.org/facade-remark#>
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
   PREFIX : <http://example.org/>
@@ -20,28 +19,37 @@ construct: |
       ?predicate ?object .
   }
   WHERE {
-    # Team section (H1)
-    ?teamSection a md:Section ;
-      rdf:_1 [ a md:Heading ; fx:text ?teamName ] .
+    ?root a rmk:root .
 
-    # Find relationship statements (paragraphs with wikilinks and text)
+    # Team heading
+    ?teamHeading a rmk:heading ;
+      fxr:depth "1" ;
+      fxr:children [ a rmk:text ; fxr:value ?teamName ] .
+
+    # Find relationship statements (paragraphs with links and text)
     {
-      ?teamSection ?idx ?para .
-      FILTER(?idx != rdf:_1)  # Skip heading
+      ?para a rmk:paragraph .
 
-      ?para a md:Paragraph .
+      # Pattern: [Subject](urn:...) relationship [Object](urn:...)
+      ?para fxr:children ?link1, ?textNode, ?link2 .
 
-      # Pattern: [[Subject]] relationship [[Object]]
-      ?para rdf:_1 [ a md:Wikilink ; fx:text ?subjectName ] .
-      ?para rdf:_2 [ a md:Text ; fx:raw ?relationshipRaw ] .
-      ?para rdf:_3 [ a md:Wikilink ; fx:text ?objectName ] .
+      ?link1 a rmk:link ;
+        fxr:url ?subjectUrl ;
+        fxr:children [ a rmk:text ; fxr:value ?subjectName ] .
+
+      ?textNode a rmk:text ;
+        fxr:value ?relationshipRaw .
+
+      ?link2 a rmk:link ;
+        fxr:url ?objectUrl ;
+        fxr:children [ a rmk:text ; fxr:value ?objectName ] .
 
       # Extract relationship name (trim spaces)
       BIND(REPLACE(REPLACE(?relationshipRaw, "^ ", ""), " $", "") AS ?relationshipName)
 
       BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?subjectName))) AS ?subject)
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?objectName))) AS ?object)
+      BIND(IRI(?subjectUrl) AS ?subject)
+      BIND(IRI(?objectUrl) AS ?object)
 
       # Map relationship to predicate
       BIND(IF(?relationshipName = "knows", foaf:knows,
@@ -51,26 +59,31 @@ construct: |
     UNION
     # Members list (paragraphs starting with "Members:")
     {
-      ?teamSection ?idx2 ?membersPara .
-      FILTER(?idx2 != rdf:_1)
+      ?membersPara a rmk:paragraph ;
+        fxr:children ?membersText .
 
-      ?membersPara a md:Paragraph ;
-        rdf:_1 [ a md:Text ; fx:raw ?membersPrefix ] .
+      ?membersText a rmk:text ;
+        fxr:value ?membersPrefix .
 
       FILTER(CONTAINS(?membersPrefix, "Members:"))
 
-      # Get wikilinks after "Members:"
-      ?membersPara ?linkIdx [ a md:Wikilink ; fx:text ?memberName ] .
+      # Get links in the same paragraph
+      ?membersPara fxr:children ?memberLink .
+
+      ?memberLink a rmk:link ;
+        fxr:url ?memberUrl ;
+        fxr:children [ a rmk:text ; fxr:value ?memberName ] .
 
       BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?memberName))) AS ?member)
+      BIND(IRI(?memberUrl) AS ?member)
     }
   }
 ---
 
 # Team Alpha
 
-[[Bob]] knows [[Alice]]
-[[Alice]] likes [[Icecream]]
+[Bob](urn:Bob) knows [Alice](urn:Alice)
 
-Members: [[Bob]], [[Alice]]
+[Alice](urn:Alice) likes [Icecream](urn:Icecream)
+
+Members: [Bob](urn:Bob), [Alice](urn:Alice)

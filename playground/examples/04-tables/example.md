@@ -1,93 +1,79 @@
 ---
 title: Tables
 description: Using markdown tables to represent structured data
-ignore: true
-preserve-order: true
+facade: facade-remark
 construct: |
-  PREFIX md: <http://example.org/markdown#>
-  PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+  PREFIX rmk: <http://example.org/remark#>
+  PREFIX fxr: <http://example.org/facade-remark#>
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
   PREFIX : <http://example.org/>
 
   CONSTRUCT {
-    # Teams
     ?team a :Team ;
       :name ?teamName ;
       :hasMember ?person .
 
-    # People
     ?person a foaf:Person ;
       foaf:name ?personName .
 
-    # Relations
     ?person1 foaf:knows ?person2 .
 
-    # Preferences
     ?person3 :likes ?object .
   }
   WHERE {
-    # Teams section
+    # Teams table
     {
-      ?teamsSection a md:Section ;
-        rdf:_1 [ a md:Heading ; fx:text "Teams" ] ;
-        rdf:_2 ?teamsTable .
+      ?table a rmk:table ;
+        fxr:children ?row .
 
-      ?teamsTable a md:Table ;
-        ?rowIdx ?row .
+      ?row fxr:children ?cell1, ?cell2 .
+      FILTER(?cell1 != ?cell2)
 
-      FILTER(?rowIdx != rdf:_1)  # Skip header row
+      ?cell1 fxr:children [ a rmk:text ; fxr:value ?name ] .
+      ?cell2 fxr:children [ a rmk:text ; fxr:value "Team Alpha" ] .
 
-      ?row a md:Table_row ;
-        rdf:_1 [ a md:Table_cell ;
-                 rdf:_1 [ fx:content ?personName ] ] ;
-        rdf:_2 [ a md:Table_cell ;
-                 rdf:_1 [ fx:content ?teamName ] ] .
+      FILTER(?name != "Person" && ?name != "Team")
 
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?personName))) AS ?person)
+      BIND(IRI("urn:Team%20Alpha") AS ?team)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?name))) AS ?person)
+      BIND("Team Alpha" AS ?teamName)
+      BIND(?name AS ?personName)
     }
     UNION
-    # Relations section
+    # Relations table
     {
-      ?relationsSection a md:Section ;
-        rdf:_1 [ a md:Heading ; fx:text "Relations" ] ;
-        rdf:_2 ?relationsTable .
+      ?table2 a rmk:table ;
+        fxr:children ?row2 .
 
-      ?relationsTable a md:Table ;
-        ?rowIdx2 ?row2 .
+      ?row2 fxr:children ?cell3, ?cell4 .
+      FILTER(?cell3 != ?cell4)
 
-      FILTER(?rowIdx2 != rdf:_1)  # Skip header row
+      ?cell3 fxr:children [ a rmk:text ; fxr:value ?p1name ] .
+      ?cell4 fxr:children [ a rmk:text ; fxr:value ?p2name ] .
 
-      ?row2 a md:Table_row ;
-        rdf:_1 [ a md:Table_cell ;
-                 rdf:_1 [ fx:content ?person1Name ] ] ;
-        rdf:_2 [ a md:Table_cell ;
-                 rdf:_1 [ fx:content ?person2Name ] ] .
+      FILTER(?p2name != "Team Alpha" && ?p2name != "Icecream")
+      FILTER(?p1name != "Person" && ?p2name != "Knows")
 
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?person1Name))) AS ?person1)
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?person2Name))) AS ?person2)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?p1name))) AS ?person1)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?p2name))) AS ?person2)
     }
     UNION
-    # Preferences section
+    # Preferences table
     {
-      ?prefsSection a md:Section ;
-        rdf:_1 [ a md:Heading ; fx:text "Preferences" ] ;
-        rdf:_2 ?prefsTable .
+      ?table3 a rmk:table ;
+        fxr:children ?row3 .
 
-      ?prefsTable a md:Table ;
-        ?rowIdx3 ?row3 .
+      ?row3 fxr:children ?cell5, ?cell6 .
+      FILTER(?cell5 != ?cell6)
 
-      FILTER(?rowIdx3 != rdf:_1)  # Skip header row
+      ?cell5 fxr:children [ a rmk:text ; fxr:value ?p3name ] .
+      ?cell6 fxr:children [ a rmk:text ; fxr:value "Icecream" ] .
 
-      ?row3 a md:Table_row ;
-        rdf:_1 [ a md:Table_cell ;
-                 rdf:_1 [ fx:content ?person3Name ] ] ;
-        rdf:_2 [ a md:Table_cell ;
-                 rdf:_1 [ fx:content ?objectName ] ] .
+      FILTER(?p3name != "Person" && ?p3name != "Likes")
 
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?person3Name))) AS ?person3)
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?objectName))) AS ?object)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?p3name))) AS ?person3)
+      BIND(IRI("urn:Icecream") AS ?object)
     }
   }
 ---

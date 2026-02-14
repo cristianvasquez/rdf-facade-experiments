@@ -1,6 +1,7 @@
 ---
 title: Entities (Explicit)
 description: Explicit entity and property declarations
+facade: facade-x
 preserve-order: false
 construct: |
   PREFIX md: <http://example.org/markdown#>

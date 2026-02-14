@@ -1,6 +1,7 @@
 ---
 title: Team Alpha (Emphasis)
 description: Using emphasis (*text*) to denote relationships
+facade: facade-x
 preserve-order: false
 construct: |
   PREFIX md: <http://example.org/markdown#>

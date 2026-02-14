@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs'
 import { parse as parseYaml } from 'yaml'
-import { markdownToRdf } from '../src/streaming-facade-x.js'
+import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
+import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import { Store } from 'n3'
 import { printQuads } from '../src/serialize-utils.js'
@@ -45,12 +46,22 @@ export async function processExample(filePath, options = {}) {
     console.log()
   }
 
+  // Determine which facade to use
+  const facade = frontmatter?.facade || 'facade-x'
+
   // Generate facade RDF
-  if (verbose) console.log('Generating facade RDF...')
-  const preserveOrder = frontmatter?.['preserve-order'] ?? true
-  const useRdfsMember = !preserveOrder  // preserve-order: false → useRdfsMember: true
-  const useNumbered = preserveOrder     // preserve-order: true → useNumbered: true
-  const facadeQuads = await markdownToRdf(content, { useRdfsMember, useNumbered })
+  if (verbose) console.log(`Generating facade RDF using ${facade}...`)
+
+  let facadeQuads
+  if (facade === 'facade-remark') {
+    facadeQuads = remarkToRdf(content)
+  } else {
+    // facade-x
+    const preserveOrder = frontmatter?.['preserve-order'] ?? true
+    const useRdfsMember = !preserveOrder  // preserve-order: false → useRdfsMember: true
+    const useNumbered = preserveOrder     // preserve-order: true → useNumbered: true
+    facadeQuads = await facadeXToRdf(content, { useRdfsMember, useNumbered })
+  }
 
   if (showFacade || verbose) {
     console.log('\n=== FACADE RDF ===')
