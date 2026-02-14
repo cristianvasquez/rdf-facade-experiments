@@ -28,7 +28,7 @@ construct: |
                fx:raw ?valueRaw ] .
 
     BIND(REPLACE(?valueRaw, "^ ", "") AS ?valueName)
-    BIND(IRI(CONCAT("urn:", REPLACE(?entityName, " ", "_"))) AS ?entity)
+    BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?entityName))) AS ?entity)
 
     # Handle "is a" specially for rdf:type
     BIND(IF(?propertyName = "is a",
@@ -36,14 +36,14 @@ construct: |
             IF(?propertyName = "has member", :hasMember,
             IF(?propertyName = "knows", foaf:knows,
             IF(?propertyName = "likes", :likes,
-               IRI(CONCAT("http://example.org/", REPLACE(?propertyName, " ", "_"))))))) AS ?predicate)
+               IRI(CONCAT("http://example.org/", ENCODE_FOR_URI(?propertyName))))))) AS ?predicate)
 
     # Determine if value is a type or an entity
     BIND(IF(?propertyName = "is a",
             IF(?valueName = "Team", :Team,
             IF(?valueName = "Person", foaf:Person,
-               IRI(CONCAT("http://example.org/", ?valueName)))),
-            IRI(CONCAT("urn:", REPLACE(?valueName, " ", "_")))) AS ?object)
+               IRI(CONCAT("http://example.org/", ENCODE_FOR_URI(?valueName))))),
+            IRI(CONCAT("urn:", ENCODE_FOR_URI(?valueName)))) AS ?object)
 
     # Extract type for CONSTRUCT
     OPTIONAL {

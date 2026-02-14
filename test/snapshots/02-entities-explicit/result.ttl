@@ -7,7 +7,7 @@
 <urn:Bob> a foaf:Person;
   foaf:knows <urn:Alice>.
 
-<urn:Team_Alpha> a <http://example.org/Team>;
+<urn:Team%20Alpha> a <http://example.org/Team>;
   <http://example.org/hasMember>
     <urn:Alice>,
     <urn:Bob>.

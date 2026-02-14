@@ -40,8 +40,8 @@ construct: |
         rdf:_2 [ a md:Table_cell ;
                  rdf:_1 [ fx:content ?teamName ] ] .
 
-      BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
-      BIND(IRI(CONCAT("urn:", ?personName)) AS ?person)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?personName))) AS ?person)
     }
     UNION
     # Relations section
@@ -61,8 +61,8 @@ construct: |
         rdf:_2 [ a md:Table_cell ;
                  rdf:_1 [ fx:content ?person2Name ] ] .
 
-      BIND(IRI(CONCAT("urn:", ?person1Name)) AS ?person1)
-      BIND(IRI(CONCAT("urn:", ?person2Name)) AS ?person2)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?person1Name))) AS ?person1)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?person2Name))) AS ?person2)
     }
     UNION
     # Preferences section
@@ -82,8 +82,8 @@ construct: |
         rdf:_2 [ a md:Table_cell ;
                  rdf:_1 [ fx:content ?objectName ] ] .
 
-      BIND(IRI(CONCAT("urn:", ?person3Name)) AS ?person3)
-      BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?person3Name))) AS ?person3)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?objectName))) AS ?object)
     }
   }
 ---

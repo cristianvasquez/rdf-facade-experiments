@@ -44,9 +44,9 @@ construct: |
                                  fx:raw ?objectName ] ] ] .
 
     # Create IRIs
-    BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
-    BIND(IRI(CONCAT("urn:", ?personName)) AS ?person)
-    BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+    BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
+    BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?personName))) AS ?person)
+    BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?objectName))) AS ?object)
 
     # Map relationship names to predicates
     BIND(IF(LCASE(?relationshipName) = "knows", foaf:knows,

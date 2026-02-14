@@ -35,9 +35,9 @@ construct: |
       # Extract relationship name (trim spaces)
       BIND(REPLACE(REPLACE(?relationshipRaw, "^ ", ""), " $", "") AS ?relationshipName)
 
-      BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
-      BIND(IRI(CONCAT("urn:", ?subjectName)) AS ?subject)
-      BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?subjectName))) AS ?subject)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?objectName))) AS ?object)
 
       # Map relationship to predicate
       BIND(IF(?relationshipName = "knows", foaf:knows,
@@ -58,8 +58,8 @@ construct: |
       # Get wikilinks after "Members:"
       ?membersPara ?linkIdx [ a md:Wikilink ; fx:text ?memberName ] .
 
-      BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
-      BIND(IRI(CONCAT("urn:", ?memberName)) AS ?member)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
+      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?memberName))) AS ?member)
     }
   }
 ---
