@@ -1,3 +1,4 @@
+// Facade-X example - hierarchical structure with numbered predicates
 import SerializerTurtle from '@rdfjs/serializer-turtle'
 import { nsArray } from './src/namespaces.js'
 import { createMarkdownToRdfStream } from './src/streaming-facade-x.js'
@@ -20,14 +21,8 @@ A [link](http://example.com) and some \`code\`.
 `
 
 const serializer = new SerializerTurtle({ prefixes: nsArray })
-
-// Create a stream that converts markdown to RDF quads
 const quadStream = createMarkdownToRdfStream()
-
-// Pipe to the turtle serializer and then to stdout
 const output = serializer.import(quadStream)
 output.pipe(process.stdout)
-
-// Write the markdown to the stream
 quadStream.write(markdown)
 quadStream.end()

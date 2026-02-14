@@ -20,6 +20,9 @@
     "prismjs": "^1.30.0",
     "rdf-ext": "^2.6.0",
     "readable-stream": "^4.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
     "stream-markdown-parser": "^0.0.57",
     "unified": "^11.0.5",
     "yaml": "^2.8.2"

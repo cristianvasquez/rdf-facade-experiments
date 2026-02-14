@@ -211,21 +211,38 @@ pnpm test
 # - Expected output for each example
 ```
 
+## Two Facade Implementations
+
+### Facade-X (`src/streaming-facade-x.js`)
+- Namespaces: `fx:`, `md:`
+- Hierarchical sections based on headings
+- Numbered predicates (`rdf:_1`, `rdf:_2`)
+- Example: `node example.js`
+
+### Remark Facade (`src/remark-facade.js`)
+- Namespaces: `fxr:`, `rmk:`
+- Direct AST representation
+- Position info (line, column, offset as integers)
+- Tables, frontmatter, rich formatting
+- Example: `node example-remark.js`
+
 ## Future Work
 
-1. **Better markdown parser** - Support tables and wikilinks (remark.js)
+1. ✅ **Better markdown parser** - Now available via remark.js
 2. **Bidirectional** - Generate markdown from semantic RDF
-3. **Provenance** - Track RDF triples → markdown source lines
+3. **Provenance** - Track RDF triples → markdown source lines (partially available via position info in remark facade)
 4. **More examples** - Inline links, prose, task lists
 5. **Validation** - Strict comparison with expected-output.ttl
 
 ## Dependencies
 
-- `stream-markdown-parser` - Markdown AST parser
+- `stream-markdown-parser` - Streaming markdown parser (for streaming facade)
+- `unified` + `remark-parse` + `remark-gfm` + `remark-frontmatter` - Remark ecosystem (for remark facade)
 - `n3` - RDF store
 - `@comunica/query-sparql-rdfjs-lite` - SPARQL engine
 - `yaml` - YAML parser for code blocks
 - `@rdfjs/serializer-turtle` - Turtle output
+- `rdf-ext` - RDF data model
 
 ## Related Work
 
