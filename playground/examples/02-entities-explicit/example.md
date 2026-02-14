@@ -62,7 +62,7 @@ construct: |
 
 # Entities
 
-## Dream Team
+## Team Alpha
 
 *is a* Team
 

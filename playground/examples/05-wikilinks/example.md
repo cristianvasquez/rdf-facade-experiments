@@ -64,7 +64,7 @@ construct: |
   }
 ---
 
-# Dream Team
+# Team Alpha
 
 [[Bob]] knows [[Alice]]
 [[Alice]] likes [[Icecream]]

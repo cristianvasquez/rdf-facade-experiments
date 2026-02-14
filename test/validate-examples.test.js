@@ -4,7 +4,7 @@ import { processExample } from './process-example.js'
 import { compareSnapshot, shouldUpdateSnapshots } from './snapshot-helper.js'
 
 const EXAMPLES = [
-  '01-dream-team-emphasis',
+  '01-team-alpha-emphasis',
   '02-entities-explicit',
   '03-nested-lists',
 ]

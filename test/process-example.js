@@ -121,9 +121,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log('  --verbose        Show all steps')
     console.log('')
     console.log('Examples:')
-    console.log('  node test/process-example.js examples/01-dream-team-emphasis/example.md')
-    console.log('  node test/process-example.js examples/01-dream-team-emphasis/example.md --facade')
-    console.log('  node test/process-example.js examples/01-dream-team-emphasis/example.md --verbose')
+    console.log('  node test/process-example.js examples/01-team-alpha-emphasis/example.md')
+    console.log('  node test/process-example.js examples/01-team-alpha-emphasis/example.md --facade')
+    console.log('  node test/process-example.js examples/01-team-alpha-emphasis/example.md --verbose')
     process.exit(1)
   }
 

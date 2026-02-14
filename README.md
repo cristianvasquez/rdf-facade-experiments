@@ -18,13 +18,13 @@ pnpm install
 pnpm test
 
 # Process a specific example
-node test/process-example.js examples/01-dream-team-emphasis/example.md
+node test/process-example.js examples/01-team-alpha-emphasis/example.md
 
 # Show facade RDF
-node test/process-example.js examples/01-dream-team-emphasis/example.md --facade
+node test/process-example.js examples/01-team-alpha-emphasis/example.md --facade
 
 # Show all steps
-node test/process-example.js examples/01-dream-team-emphasis/example.md --verbose
+node test/process-example.js examples/01-team-alpha-emphasis/example.md --verbose
 ```
 
 ## Working Examples (4/6)
@@ -32,7 +32,7 @@ node test/process-example.js examples/01-dream-team-emphasis/example.md --verbos
 All examples produce the same semantic output from different markdown syntaxes:
 
 ```turtle
-<urn:Dream_Team> a :Team ;
+<urn:team-alpha> a :Team ;
   :hasMember <urn:Bob>, <urn:Alice> .
 
 <urn:Bob> a foaf:Person ; foaf:knows <urn:Alice> .
@@ -76,7 +76,7 @@ All examples produce the same semantic output from different markdown syntaxes:
 ````markdown
 ```yaml
 teams:
-  - name: Dream Team
+  - name: Team Alpha
     members: [Bob, Alice]
 people:
   - name: Bob
@@ -103,7 +103,7 @@ rdf-facade-experiments/
 │   ├── validate-examples.test.js    # Automated validation tests
 │   └── stream-markdown-to-rdf.test.js
 ├── examples/
-│   ├── 01-dream-team-emphasis/
+│   ├── 01-team-alpha-emphasis/
 │   ├── 02-entities-explicit/
 │   ├── 03-nested-lists/
 │   ├── 04-tables/                   # Not working
@@ -160,7 +160,7 @@ md:Code_block
   fx:language "yaml" ;
   fx:data [           # Parsed YAML structure
     xyz:teams [
-      rdf:_1 [ xyz:name "Dream Team" ; xyz:members [ rdf:_1 "Bob" ] ]
+      rdf:_1 [ xyz:name "Team Alpha" ; xyz:members [ rdf:_1 "Bob" ] ]
     ]
   ]
 ```

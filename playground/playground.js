@@ -11,7 +11,7 @@ import 'prismjs/components/prism-turtle.min.js'
 
 const examples = {
   emphasis: {
-    name: 'Dream Team (Emphasis)',
+    name: 'Team Alpha (Emphasis)',
     markdown: `# Dream team
 
 ## Bob
@@ -70,7 +70,7 @@ WHERE {
     name: 'Entities (Explicit)',
     markdown: `# Entities
 
-## Dream Team
+## Team Alpha
 
 *is a* Team
 
@@ -296,7 +296,7 @@ WHERE {
   },
   wikilinks: {
     name: 'Wikilinks',
-    markdown: `# Dream Team
+    markdown: `# Team Alpha
 
 [[Bob]] knows [[Alice]]
 [[Alice]] likes [[Icecream]]
