@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown to RDF Playground</title>
+  <link rel="stylesheet" href="/playground.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔄 Markdown to RDF Playground</h1>
+      <p class="intro">
+        <strong>Literate RDF authoring</strong> through markdown: author semantic graphs using familiar markdown syntax.
+        The <strong>facade</strong> is a general intermediate representation of the markdown structure.
+        The <strong>SPARQL CONSTRUCT</strong> mapping makes the semantics explicit, transforming the facade into domain RDF.
+        Same semantic meaning, different syntactic styles—you choose what fits your workflow.
+      </p>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" data-example="emphasis">Dream Team (Emphasis)</div>
+      <div class="tab" data-example="explicit">Entities (Explicit)</div>
+      <div class="tab" data-example="lists">Nested Lists</div>
+      <div class="tab" data-example="tables">Tables</div>
+      <div class="tab" data-example="wikilinks">Wikilinks</div>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-step markdown">Markdown<br>Input</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step facade">Facade<br>RDF</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step sparql">SPARQL<br>Transform</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step semantic">Target<br>RDF</div>
+    </div>
+
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-header markdown">
+          Markdown Input
+          <span class="badge">editable</span>
+        </div>
+        <div class="panel-content">
+          <textarea id="markdown-input" spellcheck="false"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header facade">
+          Facade RDF
+          <span class="badge">intermediate</span>
+        </div>
+        <div class="panel-content">
+          <pre><code id="facade-output" class="language-turtle"></code></pre>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header semantic">
+          Target RDF
+          <span class="badge">output</span>
+        </div>
+        <div class="panel-content">
+          <pre><code id="semantic-output" class="language-turtle"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="query-panel">
+      <div class="query-header">SPARQL CONSTRUCT Mapping</div>
+      <div class="query-content">
+        <pre><code id="sparql-query"></code></pre>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/playground.js"></script>
+</body>
+</html>

@@ -5,6 +5,10 @@ const ns = {
   fx: rdf.namespace('http://sparql.xyz/facade-x/ns/'),
   md: rdf.namespace('http://example.org/markdown#'),
   xyz: rdf.namespace('http://sparql.xyz/facade-x/data/'),
+
+  ex: rdf.namespace('http://http://example.org/'),
+  foaf: rdf.namespace('http://xmlns.com/foaf/0.1/'),
+
 }
 
 function toPlain (prefixes) {

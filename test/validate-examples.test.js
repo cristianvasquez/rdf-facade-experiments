@@ -13,7 +13,7 @@ describe('Example Validation', () => {
   for (const exampleName of EXAMPLES) {
     describe(`Example: ${exampleName}`, () => {
       it('should generate facade RDF', async () => {
-        const examplePath = `examples/${exampleName}/example.md`
+        const examplePath = `playground/examples/${exampleName}/example.md`
         const result = await processExample(examplePath, { executeConstruct: false })
 
         assert.ok(result.facadeQuads, 'Should generate facade quads')
@@ -21,7 +21,7 @@ describe('Example Validation', () => {
       })
 
       it('should execute CONSTRUCT query', async () => {
-        const examplePath = `examples/${exampleName}/example.md`
+        const examplePath = `playground/examples/${exampleName}/example.md`
         const result = await processExample(examplePath, { executeConstruct: true })
 
         assert.ok(result.semanticQuads, 'Should generate semantic quads')
@@ -29,8 +29,8 @@ describe('Example Validation', () => {
       })
 
       it('should produce expected output', async () => {
-        const examplePath = `examples/${exampleName}/example.md`
-        const expectedPath = `examples/${exampleName}/expected-output.ttl`
+        const examplePath = `playground/examples/${exampleName}/example.md`
+        const expectedPath = `playground/examples/${exampleName}/expected-output.ttl`
 
         const result = await processExample(examplePath, { executeConstruct: true })
         const expected = readFileSync(expectedPath, 'utf-8')

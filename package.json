@@ -5,7 +5,10 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha 'test/**/*.test.js'"
+    "test": "mocha 'test/**/*.test.js'",
+    "dev": "vite --config playground/vite.config.js",
+    "build:playground": "vite build --config playground/vite.config.js",
+    "preview": "vite preview --config playground/vite.config.js"
   },
   "author": "Cristian Vasquez",
   "license": "MIT",
@@ -14,6 +17,7 @@
     "@rdfjs/data-model": "^2.1.1",
     "@rdfjs/serializer-turtle": "^1.1.5",
     "n3": "^1.17.0",
+    "prismjs": "^1.30.0",
     "rdf-ext": "^2.6.0",
     "readable-stream": "^4.0.0",
     "stream-markdown-parser": "^0.0.57",
@@ -23,7 +27,8 @@
   "devDependencies": {
     "@comunica/query-sparql-rdfjs-lite": "^5.0.1",
     "browserify": "^17.0.1",
-    "mocha": "^11.7.5"
+    "mocha": "^11.7.5",
+    "vite": "^7.3.1"
   },
   "keywords": [
     "rdf",
