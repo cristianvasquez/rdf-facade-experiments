@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@comunica/query-sparql-rdfjs-lite": "^5.0.1",
+    "browserify": "^17.0.1",
     "mocha": "^11.7.5"
   },
   "keywords": [
