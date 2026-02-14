@@ -8,24 +8,21 @@ construct: |
   PREFIX : <http://example.org/>
 
   CONSTRUCT {
-    ?entity a ?type ;
-      ?predicate ?object .
+    ?entity ?predicate ?object .
   }
   WHERE {
     # Each H2 section is an entity
     ?section a md:Section ;
       rdfs:member [ a md:Heading ;
-                    fx:text ?entityName ] .
+                    fx:text ?entityName ] ;
+      rdfs:member ?paragraph .
 
     # Get all paragraphs in the section (property statements)
-    ?section rdfs:member ?paragraph .
-    FILTER NOT EXISTS { ?paragraph a md:Heading }  # Skip headings
-
     ?paragraph a md:Paragraph ;
-      rdf:_1 [ a md:Emphasis ;
-               rdf:_1 [ fx:raw ?propertyName ] ] ;
-      rdf:_2 [ a md:Text ;
-               fx:raw ?valueRaw ] .
+      rdfs:member [ a md:Emphasis ;
+                    rdfs:member [ fx:raw ?propertyName ] ] ;
+      rdfs:member [ a md:Text ;
+                    fx:raw ?valueRaw ] .
 
     BIND(REPLACE(?valueRaw, "^ ", "") AS ?valueName)
     BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?entityName))) AS ?entity)
@@ -44,20 +41,6 @@ construct: |
             IF(?valueName = "Person", foaf:Person,
                IRI(CONCAT("http://example.org/", ENCODE_FOR_URI(?valueName))))),
             IRI(CONCAT("urn:", ENCODE_FOR_URI(?valueName)))) AS ?object)
-
-    # Extract type for CONSTRUCT
-    OPTIONAL {
-      ?section rdf:_2 ?typePara .
-      ?typePara a md:Paragraph ;
-        rdf:_1 [ a md:Emphasis ;
-                 rdf:_1 [ fx:raw "is a" ] ] ;
-        rdf:_2 [ a md:Text ;
-                 fx:raw ?typeRaw ] .
-      BIND(REPLACE(?typeRaw, "^ ", "") AS ?typeName)
-      BIND(IF(?typeName = "Team", :Team,
-            IF(?typeName = "Person", foaf:Person,
-               IRI(CONCAT("http://example.org/", ?typeName)))) AS ?type)
-    }
   }
 ---
 

@@ -4,233 +4,125 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
 [ a md:Document;
-  rdf:_1 _:b1;
-  rdfs:member _:b1
+  rdfs:member [ a md:Section;
+      rdfs:member [ a md:Heading;
+          fx:raw "Entities";
+          fx:text "Entities";
+          rdfs:member [ a md:Text;
+              fx:center "false";
+              fx:raw "Entities"
+            ]
+        ], [ a md:Section;
+          rdfs:member [ a md:Heading;
+              fx:raw "Team Alpha";
+              fx:text "Team Alpha";
+              rdfs:member [ a md:Text;
+                  fx:center "false";
+                  fx:raw "Team Alpha"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*is a* Team";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*is a*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "is a"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Team"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*has member* Bob";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*has member*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "has member"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Bob"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*has member* Alice";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*has member*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "has member"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Alice"
+                ]
+            ]
+        ], [ a md:Section;
+          rdfs:member [ a md:Heading;
+              fx:raw "Bob";
+              fx:text "Bob";
+              rdfs:member [ a md:Text;
+                  fx:center "false";
+                  fx:raw "Bob"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*is a* Person";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*is a*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "is a"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Person"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*knows* Alice";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*knows*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "knows"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Alice"
+                ]
+            ]
+        ], [ a md:Section;
+          rdfs:member [ a md:Heading;
+              fx:raw "Alice";
+              fx:text "Alice";
+              rdfs:member [ a md:Text;
+                  fx:center "false";
+                  fx:raw "Alice"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*is a* Person";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*is a*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "is a"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Person"
+                ]
+            ], [ a md:Paragraph;
+              fx:raw "*likes* Icecream";
+              rdfs:member [ a md:Emphasis;
+                  fx:raw "*likes*";
+                  rdfs:member [ a md:Text;
+                      fx:center "false";
+                      fx:raw "likes"
+                    ]
+                ], [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Icecream"
+                ]
+            ]
+        ]
+    ]
 ].
-
-_:b1 a md:Section;
-  rdf:_1 _:b2;
-  rdf:_2 _:b3;
-  rdf:_3 _:b4;
-  rdf:_4 _:b5;
-  rdfs:member
-    _:b2,
-    _:b3,
-    _:b4,
-    _:b5.
-
-_:b2 a md:Heading;
-  fx:raw "Entities";
-  fx:text "Entities";
-  rdf:_1 _:b6;
-  rdfs:member _:b6.
-
-_:b6 a md:Text;
-  fx:center "false";
-  fx:raw "Entities".
-
-_:b3 a md:Section;
-  rdf:_1 _:b7;
-  rdf:_2 _:b8;
-  rdf:_3 _:b9;
-  rdf:_4 _:b10;
-  rdfs:member
-    _:b7,
-    _:b8,
-    _:b9,
-    _:b10.
-
-_:b7 a md:Heading;
-  fx:raw "Team Alpha";
-  fx:text "Team Alpha";
-  rdf:_1 _:b11;
-  rdfs:member _:b11.
-
-_:b11 a md:Text;
-  fx:center "false";
-  fx:raw "Team Alpha".
-
-_:b8 a md:Paragraph;
-  fx:raw "*is a* Team";
-  rdf:_1 _:b12;
-  rdf:_2 _:b13;
-  rdfs:member
-    _:b12,
-    _:b13.
-
-_:b12 a md:Emphasis;
-  fx:raw "*is a*";
-  rdf:_1 _:b14;
-  rdfs:member _:b14.
-
-_:b14 a md:Text;
-  fx:center "false";
-  fx:raw "is a".
-
-_:b13 a md:Text;
-  fx:center "false";
-  fx:raw " Team".
-
-_:b9 a md:Paragraph;
-  fx:raw "*has member* Bob";
-  rdf:_1 _:b15;
-  rdf:_2 _:b16;
-  rdfs:member
-    _:b15,
-    _:b16.
-
-_:b15 a md:Emphasis;
-  fx:raw "*has member*";
-  rdf:_1 _:b17;
-  rdfs:member _:b17.
-
-_:b17 a md:Text;
-  fx:center "false";
-  fx:raw "has member".
-
-_:b16 a md:Text;
-  fx:center "false";
-  fx:raw " Bob".
-
-_:b10 a md:Paragraph;
-  fx:raw "*has member* Alice";
-  rdf:_1 _:b18;
-  rdf:_2 _:b19;
-  rdfs:member
-    _:b18,
-    _:b19.
-
-_:b18 a md:Emphasis;
-  fx:raw "*has member*";
-  rdf:_1 _:b20;
-  rdfs:member _:b20.
-
-_:b20 a md:Text;
-  fx:center "false";
-  fx:raw "has member".
-
-_:b19 a md:Text;
-  fx:center "false";
-  fx:raw " Alice".
-
-_:b4 a md:Section;
-  rdf:_1 _:b21;
-  rdf:_2 _:b22;
-  rdf:_3 _:b23;
-  rdfs:member
-    _:b21,
-    _:b22,
-    _:b23.
-
-_:b21 a md:Heading;
-  fx:raw "Bob";
-  fx:text "Bob";
-  rdf:_1 _:b24;
-  rdfs:member _:b24.
-
-_:b24 a md:Text;
-  fx:center "false";
-  fx:raw "Bob".
-
-_:b22 a md:Paragraph;
-  fx:raw "*is a* Person";
-  rdf:_1 _:b25;
-  rdf:_2 _:b26;
-  rdfs:member
-    _:b25,
-    _:b26.
-
-_:b25 a md:Emphasis;
-  fx:raw "*is a*";
-  rdf:_1 _:b27;
-  rdfs:member _:b27.
-
-_:b27 a md:Text;
-  fx:center "false";
-  fx:raw "is a".
-
-_:b26 a md:Text;
-  fx:center "false";
-  fx:raw " Person".
-
-_:b23 a md:Paragraph;
-  fx:raw "*knows* Alice";
-  rdf:_1 _:b28;
-  rdf:_2 _:b29;
-  rdfs:member
-    _:b28,
-    _:b29.
-
-_:b28 a md:Emphasis;
-  fx:raw "*knows*";
-  rdf:_1 _:b30;
-  rdfs:member _:b30.
-
-_:b30 a md:Text;
-  fx:center "false";
-  fx:raw "knows".
-
-_:b29 a md:Text;
-  fx:center "false";
-  fx:raw " Alice".
-
-_:b5 a md:Section;
-  rdf:_1 _:b31;
-  rdf:_2 _:b32;
-  rdf:_3 _:b33;
-  rdfs:member
-    _:b31,
-    _:b32,
-    _:b33.
-
-_:b31 a md:Heading;
-  fx:raw "Alice";
-  fx:text "Alice";
-  rdf:_1 _:b34;
-  rdfs:member _:b34.
-
-_:b34 a md:Text;
-  fx:center "false";
-  fx:raw "Alice".
-
-_:b32 a md:Paragraph;
-  fx:raw "*is a* Person";
-  rdf:_1 _:b35;
-  rdf:_2 _:b36;
-  rdfs:member
-    _:b35,
-    _:b36.
-
-_:b35 a md:Emphasis;
-  fx:raw "*is a*";
-  rdf:_1 _:b37;
-  rdfs:member _:b37.
-
-_:b37 a md:Text;
-  fx:center "false";
-  fx:raw "is a".
-
-_:b36 a md:Text;
-  fx:center "false";
-  fx:raw " Person".
-
-_:b33 a md:Paragraph;
-  fx:raw "*likes* Icecream";
-  rdf:_1 _:b38;
-  rdf:_2 _:b39;
-  rdfs:member
-    _:b38,
-    _:b39.
-
-_:b38 a md:Emphasis;
-  fx:raw "*likes*";
-  rdf:_1 _:b40;
-  rdfs:member _:b40.
-
-_:b40 a md:Text;
-  fx:center "false";
-  fx:raw "likes".
-
-_:b39 a md:Text;
-  fx:center "false";
-  fx:raw " Icecream".

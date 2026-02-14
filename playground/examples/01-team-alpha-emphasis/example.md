@@ -29,18 +29,13 @@ construct: |
                     fx:text ?teamName ] ;
       rdfs:member ?personSection .
 
-    # Skip headings when looking for person sections
-    FILTER NOT EXISTS { ?personSection a md:Heading }
-
-    # H2 Section = Person
+    # H2 Section = Person (directly specify type instead of filtering)
     ?personSection a md:Section ;
       rdfs:member [ a md:Heading ;
                     fx:text ?personName ] ;
       rdfs:member ?paragraph .
 
-    # Get paragraphs with relationship info
-    FILTER NOT EXISTS { ?paragraph a md:Heading }
-
+    # Get paragraphs with relationship info (directly specify type)
     ?paragraph a md:Paragraph ;
       rdfs:member [ a md:Emphasis ;
                     rdfs:member [ fx:raw ?relationshipName ] ] ;
@@ -54,8 +49,8 @@ construct: |
 
     # Map relationship names to predicates
     BIND(IF(?relationshipName = "knows", foaf:knows,
-         IF(?relationshipName = "likes", IRI("http://example.org/likes"),
-            IRI(CONCAT("http://example.org/", ?relationshipName)))) AS ?predicate)
+         IF(?relationshipName = "likes", :likes,
+            IRI(CONCAT(str(:), ?relationshipName)))) AS ?predicate)
   }
 ---
 

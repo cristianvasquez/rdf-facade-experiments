@@ -1,60 +1,55 @@
 @prefix fx: <http://sparql.xyz/facade-x/ns/>.
 @prefix md: <http://example.org/markdown#>.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
 [ a md:Document;
-  rdf:_1 [ a md:Section;
-      rdf:_1 [ a md:Heading;
+  rdfs:member [ a md:Section;
+      rdfs:member [ a md:Heading;
           fx:raw "Team Alpha";
           fx:text "Team Alpha";
-          rdf:_1 [ a md:Text;
+          rdfs:member [ a md:Text;
               fx:center "false";
               fx:raw "Team Alpha"
             ]
-        ];
-      rdf:_2 [ a md:Section;
-          rdf:_1 [ a md:Heading;
+        ], [ a md:Section;
+          rdfs:member [ a md:Heading;
               fx:raw "Bob";
               fx:text "Bob";
-              rdf:_1 [ a md:Text;
+              rdfs:member [ a md:Text;
                   fx:center "false";
                   fx:raw "Bob"
                 ]
-            ];
-          rdf:_2 [ a md:Paragraph;
+            ], [ a md:Paragraph;
               fx:raw "*knows* Alice";
-              rdf:_1 [ a md:Emphasis;
+              rdfs:member [ a md:Emphasis;
                   fx:raw "*knows*";
-                  rdf:_1 [ a md:Text;
+                  rdfs:member [ a md:Text;
                       fx:center "false";
                       fx:raw "knows"
                     ]
-                ];
-              rdf:_2 [ a md:Text;
+                ], [ a md:Text;
                   fx:center "false";
                   fx:raw " Alice"
                 ]
             ]
-        ];
-      rdf:_3 [ a md:Section;
-          rdf:_1 [ a md:Heading;
+        ], [ a md:Section;
+          rdfs:member [ a md:Heading;
               fx:raw "Alice";
               fx:text "Alice";
-              rdf:_1 [ a md:Text;
+              rdfs:member [ a md:Text;
                   fx:center "false";
                   fx:raw "Alice"
                 ]
-            ];
-          rdf:_2 [ a md:Paragraph;
+            ], [ a md:Paragraph;
               fx:raw "*likes* Icecream";
-              rdf:_1 [ a md:Emphasis;
+              rdfs:member [ a md:Emphasis;
                   fx:raw "*likes*";
-                  rdf:_1 [ a md:Text;
+                  rdfs:member [ a md:Text;
                       fx:center "false";
                       fx:raw "likes"
                     ]
-                ];
-              rdf:_2 [ a md:Text;
+                ], [ a md:Text;
                   fx:center "false";
                   fx:raw " Icecream"
                 ]

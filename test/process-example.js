@@ -47,8 +47,10 @@ export async function processExample(filePath, options = {}) {
 
   // Generate facade RDF
   if (verbose) console.log('Generating facade RDF...')
-  const useRdfsMember = frontmatter?.useRdfsMember ?? false
-  const facadeQuads = await markdownToRdf(content, { useRdfsMember })
+  const preserveOrder = frontmatter?.['preserve-order'] ?? true
+  const useRdfsMember = !preserveOrder  // preserve-order: false → useRdfsMember: true
+  const useNumbered = preserveOrder     // preserve-order: true → useNumbered: true
+  const facadeQuads = await markdownToRdf(content, { useRdfsMember, useNumbered })
 
   if (showFacade || verbose) {
     console.log('\n=== FACADE RDF ===')
