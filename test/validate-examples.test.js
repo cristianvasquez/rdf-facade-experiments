@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha'
 import assert from 'assert'
 import { processExample } from './process-example.js'
-import { readFileSync } from 'fs'
+import { compareSnapshot, shouldUpdateSnapshots } from './snapshot-helper.js'
 
 const EXAMPLES = [
   '01-dream-team-emphasis',
@@ -9,45 +9,81 @@ const EXAMPLES = [
   '03-nested-lists',
 ]
 
-describe('Example Validation', () => {
+const UPDATE_SNAPSHOTS = shouldUpdateSnapshots()
+
+describe('Example Validation (Snapshot-based)', () => {
   for (const exampleName of EXAMPLES) {
     describe(`Example: ${exampleName}`, () => {
-      it('should generate facade RDF', async () => {
+      it('should match facade RDF snapshot', async () => {
         const examplePath = `playground/examples/${exampleName}/example.md`
-        const result = await processExample(examplePath, { executeConstruct: false })
+        const snapshotPath = `test/snapshots/${exampleName}/facade.ttl`
+
+        const result = await processExample(examplePath, {
+          executeConstruct: false,
+          verbose: false,
+          showFacade: false
+        })
 
         assert.ok(result.facadeQuads, 'Should generate facade quads')
         assert.ok(result.facadeQuads.length > 0, 'Facade should have quads')
+
+        const comparison = await compareSnapshot(
+          result.facadeQuads,
+          snapshotPath,
+          UPDATE_SNAPSHOTS
+        )
+
+        if (comparison.created) {
+          console.log(`      ✓ Created snapshot: ${snapshotPath}`)
+        }
+
+        if (!comparison.match) {
+          console.log('\n      Expected:')
+          console.log('      ' + comparison.expected.split('\n').join('\n      '))
+          console.log('\n      Actual:')
+          console.log('      ' + comparison.actual.split('\n').join('\n      '))
+        }
+
+        assert.ok(
+          comparison.match,
+          `Facade RDF does not match snapshot. Run with UPDATE_SNAPSHOTS=true to update.`
+        )
       })
 
-      it('should execute CONSTRUCT query', async () => {
+      it('should match semantic RDF snapshot', async () => {
         const examplePath = `playground/examples/${exampleName}/example.md`
-        const result = await processExample(examplePath, { executeConstruct: true })
+        const snapshotPath = `test/snapshots/${exampleName}/semantic.ttl`
+
+        const result = await processExample(examplePath, {
+          executeConstruct: true,
+          verbose: false,
+          showFacade: false,
+          showConstruct: false
+        })
 
         assert.ok(result.semanticQuads, 'Should generate semantic quads')
         assert.ok(result.semanticQuads.length > 0, 'Semantic RDF should have quads')
-      })
 
-      it('should produce expected output', async () => {
-        const examplePath = `playground/examples/${exampleName}/example.md`
-        const expectedPath = `playground/examples/${exampleName}/expected-output.ttl`
+        const comparison = await compareSnapshot(
+          result.semanticQuads,
+          snapshotPath,
+          UPDATE_SNAPSHOTS
+        )
 
-        const result = await processExample(examplePath, { executeConstruct: true })
-        const expected = readFileSync(expectedPath, 'utf-8')
+        if (comparison.created) {
+          console.log(`      ✓ Created snapshot: ${snapshotPath}`)
+        }
 
-        // Basic validation: check that key entities are present
-        assert.ok(result.semanticQuads.length > 0, 'Should produce semantic quads')
+        if (!comparison.match) {
+          console.log('\n      Expected:')
+          console.log('      ' + comparison.expected.split('\n').join('\n      '))
+          console.log('\n      Actual:')
+          console.log('      ' + comparison.actual.split('\n').join('\n      '))
+        }
 
-        // Check for expected entities (URNs)
-        const entities = result.semanticQuads
-          .map(q => q.subject.value)
-          .filter(v => v.startsWith('urn:'))
-
-        assert.ok(entities.includes('urn:Bob'), 'Should include Bob')
-        assert.ok(entities.includes('urn:Alice'), 'Should include Alice')
         assert.ok(
-          entities.includes('urn:Dream_team') || entities.includes('urn:Dream_Team'),
-          'Should include Dream Team'
+          comparison.match,
+          `Semantic RDF does not match snapshot. Run with UPDATE_SNAPSHOTS=true to update.`
         )
       })
     })

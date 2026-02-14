@@ -1,0 +1,144 @@
+@prefix fx: <http://sparql.xyz/facade-x/ns/>.
+@prefix md: <http://example.org/markdown#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+
+[ a md:Document;
+  rdf:_1 [ a md:Section;
+      rdf:_1 [ a md:Heading;
+          fx:raw "Entities";
+          fx:text "Entities";
+          rdf:_1 [ a md:Text;
+              fx:center "false";
+              fx:raw "Entities"
+            ]
+        ];
+      rdf:_2 [ a md:Section;
+          rdf:_1 [ a md:Heading;
+              fx:raw "Dream Team";
+              fx:text "Dream Team";
+              rdf:_1 [ a md:Text;
+                  fx:center "false";
+                  fx:raw "Dream Team"
+                ]
+            ];
+          rdf:_2 [ a md:Paragraph;
+              fx:raw "*is a* Team";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*is a*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "is a"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Team"
+                ]
+            ];
+          rdf:_3 [ a md:Paragraph;
+              fx:raw "*has member* Bob";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*has member*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "has member"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Bob"
+                ]
+            ];
+          rdf:_4 [ a md:Paragraph;
+              fx:raw "*has member* Alice";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*has member*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "has member"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Alice"
+                ]
+            ]
+        ];
+      rdf:_3 [ a md:Section;
+          rdf:_1 [ a md:Heading;
+              fx:raw "Bob";
+              fx:text "Bob";
+              rdf:_1 [ a md:Text;
+                  fx:center "false";
+                  fx:raw "Bob"
+                ]
+            ];
+          rdf:_2 [ a md:Paragraph;
+              fx:raw "*is a* Person";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*is a*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "is a"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Person"
+                ]
+            ];
+          rdf:_3 [ a md:Paragraph;
+              fx:raw "*knows* Alice";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*knows*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "knows"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Alice"
+                ]
+            ]
+        ];
+      rdf:_4 [ a md:Section;
+          rdf:_1 [ a md:Heading;
+              fx:raw "Alice";
+              fx:text "Alice";
+              rdf:_1 [ a md:Text;
+                  fx:center "false";
+                  fx:raw "Alice"
+                ]
+            ];
+          rdf:_2 [ a md:Paragraph;
+              fx:raw "*is a* Person";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*is a*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "is a"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Person"
+                ]
+            ];
+          rdf:_3 [ a md:Paragraph;
+              fx:raw "*likes* Icecream";
+              rdf:_1 [ a md:Emphasis;
+                  fx:raw "*likes*";
+                  rdf:_1 [ a md:Text;
+                      fx:center "false";
+                      fx:raw "likes"
+                    ]
+                ];
+              rdf:_2 [ a md:Text;
+                  fx:center "false";
+                  fx:raw " Icecream"
+                ]
+            ]
+        ]
+    ]
+].

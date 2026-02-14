@@ -1,0 +1,13 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+
+<urn:Alice> a foaf:Person;
+  <http://example.org/likes> <urn:Icecream>.
+
+<urn:Bob> a foaf:Person;
+  foaf:knows <urn:Alice>.
+
+<urn:Dream_Team> a <http://example.org/Team>;
+  <http://example.org/hasMember>
+    <urn:Alice>,
+    <urn:Bob>.
