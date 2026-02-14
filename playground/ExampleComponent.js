@@ -1,4 +1,5 @@
-import { markdownToRdf } from '../src/streaming-facade-x.js'
+import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
+import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
 import { Store } from 'n3'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import Serializer from '@rdfjs/serializer-turtle'
@@ -28,7 +29,15 @@ async function quadsToTurtle(quads) {
 // Process markdown and execute CONSTRUCT in one pass
 async function processMarkdown(markdown, sparqlQuery, options = {}) {
   try {
-    const facadeQuads = await markdownToRdf(markdown, options)
+    const facade = options.facade || 'facade-x'
+    let facadeQuads
+
+    if (facade === 'facade-remark') {
+      facadeQuads = remarkToRdf(markdown)
+    } else {
+      facadeQuads = await facadeXToRdf(markdown, options)
+    }
+
     const facadeTurtle = await quadsToTurtle(facadeQuads)
 
     const store = new Store(facadeQuads)
@@ -51,6 +60,7 @@ export class ExampleComponent {
   constructor(example, containerElement) {
     this.example = example
     this.container = containerElement
+    this.facade = example.facade || 'facade-x'
     this.preserveOrder = example.preserveOrder
     this.layout = 'horizontal'
     this.isProcessing = false
@@ -62,6 +72,7 @@ export class ExampleComponent {
 
   getOptions() {
     return {
+      facade: this.facade,
       useNumbered: this.preserveOrder,
       useRdfsMember: !this.preserveOrder
     }
