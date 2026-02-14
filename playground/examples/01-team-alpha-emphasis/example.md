@@ -1,9 +1,10 @@
 ---
-useRdfsMember: false
+preserve-order: false
 construct: |
   PREFIX md: <http://example.org/markdown#>
   PREFIX fx: <http://sparql.xyz/facade-x/ns/>
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
   PREFIX : <http://example.org/>
 
@@ -21,25 +22,30 @@ construct: |
   WHERE {
     # H1 Section = Team
     ?doc a md:Document ;
-      rdf:_1 ?teamSection .
+      rdfs:member ?teamSection .
 
     ?teamSection a md:Section ;
-      rdf:_1 [ a md:Heading ;
-               fx:text ?teamName ] ;
-      ?idx ?personSection .
+      rdfs:member [ a md:Heading ;
+                    fx:text ?teamName ] ;
+      rdfs:member ?personSection .
 
-    # Skip the team heading (rdf:_1), get person sections (rdf:_2, rdf:_3, ...)
-    FILTER(?idx != rdf:_1)
+    # Skip headings when looking for person sections
+    FILTER NOT EXISTS { ?personSection a md:Heading }
 
     # H2 Section = Person
     ?personSection a md:Section ;
-      rdf:_1 [ a md:Heading ;
-               fx:text ?personName ] ;
-      rdf:_2 [ a md:Paragraph ;
-               rdf:_1 [ a md:Emphasis ;
-                        rdf:_1 [ fx:raw ?relationshipName ] ] ;
-               rdf:_2 [ a md:Text ;
-                        fx:raw ?objectRaw ] ] .
+      rdfs:member [ a md:Heading ;
+                    fx:text ?personName ] ;
+      rdfs:member ?paragraph .
+
+    # Get paragraphs with relationship info
+    FILTER NOT EXISTS { ?paragraph a md:Heading }
+
+    ?paragraph a md:Paragraph ;
+      rdfs:member [ a md:Emphasis ;
+                    rdfs:member [ fx:raw ?relationshipName ] ] ;
+      rdfs:member [ a md:Text ;
+                    fx:raw ?objectRaw ] .
 
     BIND(REPLACE(?objectRaw, "^ ", "") AS ?objectName)
     BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)

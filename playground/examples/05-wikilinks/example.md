@@ -1,4 +1,5 @@
 ---
+ignore: true
 construct: |
   PREFIX md: <http://example.org/markdown#>
   PREFIX fx: <http://sparql.xyz/facade-x/ns/>

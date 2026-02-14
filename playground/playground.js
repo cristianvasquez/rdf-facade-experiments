@@ -74,7 +74,7 @@ const examplesList = Object.entries(exampleFiles).map(([path, content]) => {
     name: id.replace(/^\d+-/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     markdown,
     sparql: frontmatter.construct || '',
-    useRdfsMember: frontmatter.useRdfsMember || false
+    preserveOrder: frontmatter['preserve-order'] !== undefined ? frontmatter['preserve-order'] : true
   }
 })
 
@@ -495,9 +495,10 @@ async function processMarkdown(markdown, sparqlQuery, options = {}) {
   }
 }
 
-// Get current options
+// Get current options for the current example
 function getOptions() {
-  const preserveOrder = document.getElementById('preserve-order').checked;
+  const example = examples[currentExample];
+  const preserveOrder = example.preserveOrder;
   return {
     useNumbered: preserveOrder,      // preserve-order: true → use numbered predicates
     useRdfsMember: !preserveOrder    // preserve-order: false → use rdfs:member
@@ -519,6 +520,9 @@ async function updateDisplay() {
     console.log('Example:', example.name);
 
     document.getElementById('markdown-input').value = markdown;
+
+    // Update preserve-order checkbox to match example's setting
+    document.getElementById('preserve-order').checked = example.preserveOrder;
 
     // Update SPARQL query
     const sparqlEl = document.getElementById('sparql-query');
@@ -597,8 +601,10 @@ document.getElementById('markdown-input').addEventListener('input', async () => 
   }, 500); // Reduced debounce since processing is faster now
 });
 
-// Preserve order toggle
-document.getElementById('preserve-order').addEventListener('change', () => {
+// Preserve order toggle - updates the current example's setting
+document.getElementById('preserve-order').addEventListener('change', (e) => {
+  const example = examples[currentExample];
+  example.preserveOrder = e.target.checked;
   updateDisplay();
 });
 

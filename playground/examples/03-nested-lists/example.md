@@ -1,5 +1,5 @@
 ---
-useRdfsMember: true
+preserve-order: false
 construct: |
   PREFIX md: <http://example.org/markdown#>
   PREFIX fx: <http://sparql.xyz/facade-x/ns/>
