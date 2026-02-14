@@ -14,11 +14,11 @@
         ];
       rdf:_2 [ a md:Section;
           rdf:_1 [ a md:Heading;
-              fx:raw "Dream team";
-              fx:text "Dream team";
+              fx:raw "Team Alpha";
+              fx:text "Team Alpha";
               rdf:_1 [ a md:Text;
                   fx:center "false";
-                  fx:raw "Dream team"
+                  fx:raw "Team Alpha"
                 ]
             ];
           rdf:_2 [ a md:List;

@@ -56,7 +56,7 @@ construct: |
 
 # Teams
 
-## Dream team
+## Team Alpha
 - Bob
   - Knows
     - Alice

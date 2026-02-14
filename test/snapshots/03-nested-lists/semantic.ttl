@@ -9,8 +9,8 @@
   foaf:knows <urn:Alice>;
   foaf:name "Bob".
 
-<urn:Dream_team> a <http://example.org/Team>;
+<urn:Team_Alpha> a <http://example.org/Team>;
   <http://example.org/hasMember>
     <urn:Alice>,
     <urn:Bob>;
-  <http://example.org/name> "Dream team".
+  <http://example.org/name> "Team Alpha".
