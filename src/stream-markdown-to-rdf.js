@@ -10,15 +10,13 @@ import { ns } from './namespaces.js'
  * @param {boolean} options.useNamedNodes - If true, uses named nodes with URIs instead of blank nodes
  * @param {string} options.baseUri - Base URI for generating named node URIs (required if useNamedNodes is true)
  * @param {boolean} options.useRdfsMember - If true, emits rdfs:member in addition to rdf:_N predicates
- * @param {boolean} options.useDirectPredicates - If true, uses predicates like md:paragraph1, md:paragraph2 instead of rdf:_N
  * @returns {Transform} A Transform stream that outputs RDF quads
  */
 export function createMarkdownToRdfStream(options = {}) {
   const {
     useNamedNodes = false,
     baseUri = 'http://example.org/doc#',
-    useRdfsMember = false,
-    useDirectPredicates = false
+    useRdfsMember = false
   } = options
 
   let buffer = ''
@@ -96,33 +94,21 @@ export function createMarkdownToRdfStream(options = {}) {
       rdf.namedNode(ns.md(capitalize(node.type)))
     )
 
-    // Link from parent
+    // Link from parent using rdf:_N (1-indexed container property)
     if (parent !== null && index !== null) {
-      if (useDirectPredicates) {
-        // Use direct predicates like md:paragraph1, md:heading1
-        const typeName = node.type.toLowerCase().replace(/_/g, '')
-        const predicate = `${typeName}${index + 1}`
-        yield rdf.quad(
-          parent,
-          rdf.namedNode(ns.md(predicate)),
-          subject
-        )
-      } else {
-        // Use rdf:_N (1-indexed container property)
-        yield rdf.quad(
-          parent,
-          rdf.namedNode(ns.rdf(`_${index + 1}`)),
-          subject
-        )
+      yield rdf.quad(
+        parent,
+        rdf.namedNode(ns.rdf(`_${index + 1}`)),
+        subject
+      )
 
-        // Also emit rdfs:member if requested
-        if (useRdfsMember) {
-          yield rdf.quad(
-            parent,
-            rdf.namedNode(ns.rdfs('member')),
-            subject
-          )
-        }
+      // Also emit rdfs:member if requested
+      if (useRdfsMember) {
+        yield rdf.quad(
+          parent,
+          rdf.namedNode(ns.rdfs('member')),
+          subject
+        )
       }
     }
 
