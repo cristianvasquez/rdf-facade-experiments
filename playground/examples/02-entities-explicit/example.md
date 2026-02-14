@@ -1,4 +1,6 @@
 ---
+title: Entities (Explicit)
+description: Explicit entity and property declarations
 preserve-order: false
 construct: |
   PREFIX md: <http://example.org/markdown#>

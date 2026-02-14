@@ -1,4 +1,6 @@
 ---
+title: Nested Lists
+description: Using nested markdown lists to express hierarchies
 preserve-order: false
 construct: |
   PREFIX md: <http://example.org/markdown#>
