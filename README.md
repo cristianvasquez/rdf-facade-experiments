@@ -119,7 +119,7 @@ rdf-facade-experiments/
 The markdown AST is converted to RDF with hierarchical structure:
 
 ```javascript
-import { markdownToRdf } from './src/stream-markdown-to-rdf.js'
+import { markdownToRdf } from './streaming-facade-x.js'
 
 const markdown = `# Dream team\n## Bob\n*knows* Alice`
 const facadeQuads = await markdownToRdf(markdown)

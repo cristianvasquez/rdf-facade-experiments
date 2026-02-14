@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { parse as parseYaml } from 'yaml'
-import { markdownToRdf } from '../src/stream-markdown-to-rdf.js'
+import { markdownToRdf } from '../src/streaming-facade-x.js'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import { Store } from 'n3'
 import { printQuads } from '../src/serialize-utils.js'

@@ -1,6 +1,6 @@
 import SerializerTurtle from '@rdfjs/serializer-turtle'
 import { nsArray } from './src/namespaces.js'
-import { createMarkdownToRdfStream } from './src/stream-markdown-to-rdf.js'
+import { createMarkdownToRdfStream } from './src/streaming-facade-x.js'
 
 const markdown = `
 # Document Title

@@ -1,4 +1,4 @@
-import { markdownToRdf } from '../src/stream-markdown-to-rdf.js'
+import { markdownToRdf } from '../src/streaming-facade-x.js'
 import { Store } from 'n3'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import Serializer from '@rdfjs/serializer-turtle'

@@ -3,7 +3,7 @@ import assert from 'assert'
 import {
   markdownToRdf,
   createMarkdownToRdfStream,
-} from '../src/stream-markdown-to-rdf.js'
+} from '../src/streaming-facade-x.js'
 import { Readable } from 'readable-stream'
 import rdf from 'rdf-ext'
 import { ns } from '../src/namespaces.js'
