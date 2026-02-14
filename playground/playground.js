@@ -364,6 +364,9 @@ WHERE {
 let currentExample = 'emphasis';
 let isProcessing = false;
 
+// Reusable QueryEngine instance (avoid recreation overhead)
+const queryEngine = new QueryEngine();
+
 // Helper to convert namespace functions to plain array
 function toPlain(prefixes) {
   const result = [];
@@ -382,37 +385,29 @@ async function quadsToTurtle(quads) {
   return serializer.transform(store);
 }
 
-// Process markdown to facade RDF
-async function processFacade(markdown) {
+// Process markdown and execute CONSTRUCT in one pass (avoid duplicate parsing)
+async function processMarkdown(markdown, sparqlQuery) {
   try {
-    const quads = await markdownToRdf(markdown);
-    return await quadsToTurtle(quads);
-  } catch (error) {
-    console.error('Error processing facade:', error);
-    return `Error: ${error.message}`;
-  }
-}
-
-// Execute SPARQL CONSTRUCT query
-async function executeConstruct(markdown, sparqlQuery) {
-  try {
-    // Generate facade quads
+    // Parse markdown once
     const facadeQuads = await markdownToRdf(markdown);
 
-    // Load into N3 store
-    const store = new Store(facadeQuads);
+    // Serialize facade
+    const facadeTurtle = await quadsToTurtle(facadeQuads);
 
-    // Execute CONSTRUCT using Comunica
-    const engine = new QueryEngine();
-    const result = await engine.queryQuads(sparqlQuery, {
+    // Execute CONSTRUCT using the same facade quads
+    const store = new Store(facadeQuads);
+    const result = await queryEngine.queryQuads(sparqlQuery, {
       sources: [store]
     });
 
     const semanticQuads = await result.toArray();
-    return await quadsToTurtle(semanticQuads);
+    const semanticTurtle = await quadsToTurtle(semanticQuads);
+
+    return { facadeTurtle, semanticTurtle };
   } catch (error) {
-    console.error('Error executing CONSTRUCT:', error);
-    return `Error: ${error.message}\n\n${error.stack || ''}`;
+    console.error('Error processing markdown:', error);
+    const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`;
+    return { facadeTurtle: errorMsg, semanticTurtle: errorMsg };
   }
 }
 
@@ -436,15 +431,10 @@ async function updateDisplay() {
     const sparqlEl = document.getElementById('sparql-query');
     sparqlEl.textContent = example.sparql;
 
-    console.log('Starting facade generation...');
-    // Generate facade RDF (don't update UI until ready)
-    const facadeTurtle = await processFacade(markdown);
-    console.log('Facade generated, length:', facadeTurtle.length);
-
-    console.log('Starting CONSTRUCT execution...');
-    // Execute CONSTRUCT query
-    const semanticTurtle = await executeConstruct(markdown, example.sparql);
-    console.log('Target RDF generated, length:', semanticTurtle.length);
+    console.log('Processing markdown (single pass)...');
+    // Process markdown once, generate both facade and semantic RDF
+    const { facadeTurtle, semanticTurtle } = await processMarkdown(markdown, example.sparql);
+    console.log('Processing complete - Facade:', facadeTurtle.length, 'chars, Semantic:', semanticTurtle.length, 'chars');
 
     // Update both at once to avoid flickering
     const facadeEl = document.getElementById('facade-output');
@@ -486,9 +476,8 @@ document.getElementById('markdown-input').addEventListener('input', async () => 
     isProcessing = true;
 
     try {
-      // Generate both results before updating UI
-      const facadeTurtle = await processFacade(markdown);
-      const semanticTurtle = await executeConstruct(markdown, example.sparql);
+      // Process markdown once, get both results
+      const { facadeTurtle, semanticTurtle } = await processMarkdown(markdown, example.sparql);
 
       // Update both at once to avoid flickering
       const facadeEl = document.getElementById('facade-output');
@@ -497,12 +486,14 @@ document.getElementById('markdown-input').addEventListener('input', async () => 
       semanticEl.textContent = semanticTurtle;
     } catch (error) {
       console.error('Error processing markdown:', error);
+      const facadeEl = document.getElementById('facade-output');
+      const semanticEl = document.getElementById('semantic-output');
       facadeEl.textContent = `Error: ${error.message}`;
       semanticEl.textContent = `Error: ${error.message}`;
     } finally {
       isProcessing = false;
     }
-  }, 1000); // Increased debounce to reduce flickering
+  }, 500); // Reduced debounce since processing is faster now
 });
 
 // Initial load - call directly since module loads after DOM
