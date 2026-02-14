@@ -499,7 +499,8 @@ async function processMarkdown(markdown, sparqlQuery, options = {}) {
 function getOptions() {
   const preserveOrder = document.getElementById('preserve-order').checked;
   return {
-    useRdfsMember: !preserveOrder  // preserve-order: true → useRdfsMember: false
+    useNumbered: preserveOrder,      // preserve-order: true → use numbered predicates
+    useRdfsMember: !preserveOrder    // preserve-order: false → use rdfs:member
   };
 }
 

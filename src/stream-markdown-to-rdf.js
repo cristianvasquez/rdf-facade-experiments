@@ -9,13 +9,15 @@ import { ns } from './namespaces.js'
  * @param {Object} options - Configuration options
  * @param {boolean} options.useNamedNodes - If true, uses named nodes with URIs instead of blank nodes
  * @param {string} options.baseUri - Base URI for generating named node URIs (required if useNamedNodes is true)
- * @param {boolean} options.useRdfsMember - If true, emits rdfs:member in addition to rdf:_N predicates
+ * @param {boolean} options.useNumbered - If true, emits numbered predicates (rdf:_1, rdf:_2, etc.). Default: true
+ * @param {boolean} options.useRdfsMember - If true, emits rdfs:member predicates. Default: false
  * @returns {Transform} A Transform stream that outputs RDF quads
  */
 export function createMarkdownToRdfStream(options = {}) {
   const {
     useNamedNodes = false,
     baseUri = 'http://example.org/doc#',
+    useNumbered = true,
     useRdfsMember = false
   } = options
 
@@ -94,15 +96,18 @@ export function createMarkdownToRdfStream(options = {}) {
       rdf.namedNode(ns.md(capitalize(node.type)))
     )
 
-    // Link from parent using rdf:_N (1-indexed container property)
+    // Link from parent using predicates
     if (parent !== null && index !== null) {
-      yield rdf.quad(
-        parent,
-        rdf.namedNode(ns.rdf(`_${index + 1}`)),
-        subject
-      )
+      // Emit numbered predicate (rdf:_1, rdf:_2, etc.) if requested
+      if (useNumbered) {
+        yield rdf.quad(
+          parent,
+          rdf.namedNode(ns.rdf(`_${index + 1}`)),
+          subject
+        )
+      }
 
-      // Also emit rdfs:member if requested
+      // Emit rdfs:member if requested
       if (useRdfsMember) {
         yield rdf.quad(
           parent,
