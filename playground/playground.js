@@ -9,10 +9,90 @@ import 'prismjs/themes/prism-tomorrow.css'
 // Load language components
 import 'prismjs/components/prism-turtle.min.js'
 
+// Load example files dynamically
+const exampleFiles = import.meta.glob('./examples/*/example.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true
+})
+
+// Parse frontmatter from markdown
+function parseFrontmatter(markdown) {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
+  const match = markdown.match(frontmatterRegex)
+
+  if (!match) {
+    return { frontmatter: {}, content: markdown }
+  }
+
+  // Simple YAML parsing for our use case
+  const frontmatterText = match[1]
+  const content = match[2]
+  const frontmatter = {}
+
+  let currentKey = null
+  let multilineValue = []
+
+  for (const line of frontmatterText.split('\n')) {
+    if (line.match(/^(\w+):\s*\|?\s*$/)) {
+      // Start of a key
+      if (currentKey && multilineValue.length > 0) {
+        frontmatter[currentKey] = multilineValue.join('\n')
+      }
+      currentKey = line.match(/^(\w+):/)[1]
+      multilineValue = []
+    } else if (line.match(/^(\w+):\s*(.+)$/)) {
+      // Simple key: value
+      if (currentKey && multilineValue.length > 0) {
+        frontmatter[currentKey] = multilineValue.join('\n')
+        multilineValue = []
+      }
+      const [, key, value] = line.match(/^(\w+):\s*(.+)$/)
+      currentKey = key
+      frontmatter[key] = value === 'true' ? true : value === 'false' ? false : value
+    } else if (currentKey && line.trim()) {
+      // Continuation of multiline value
+      multilineValue.push(line.replace(/^  /, ''))
+    }
+  }
+
+  if (currentKey && multilineValue.length > 0) {
+    frontmatter[currentKey] = multilineValue.join('\n')
+  }
+
+  return { frontmatter, content }
+}
+
+// Build examples object from loaded files
+const examplesList = Object.entries(exampleFiles).map(([path, content]) => {
+  const match = path.match(/\.\/examples\/(\d+-[^/]+)\/example\.md/)
+  const id = match[1]
+  const { frontmatter, content: markdown } = parseFrontmatter(content)
+
+  return {
+    id,
+    name: id.replace(/^\d+-/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    markdown,
+    sparql: frontmatter.construct || '',
+    useRdfsMember: frontmatter.useRdfsMember || false
+  }
+})
+
+// Convert to object with friendly keys
 const examples = {
+  emphasis: examplesList.find(e => e.id.includes('emphasis')),
+  explicit: examplesList.find(e => e.id.includes('explicit')),
+  lists: examplesList.find(e => e.id.includes('lists')),
+  tables: examplesList.find(e => e.id.includes('tables')),
+  wikilinks: examplesList.find(e => e.id.includes('wikilinks'))
+}
+
+// Old hardcoded examples (backup/fallback)
+const examplesOld = {
   emphasis: {
     name: 'Team Alpha (Emphasis)',
-    markdown: `# Dream team
+    useRdfsMember: false,
+    markdown: `# Team Alpha
 
 ## Bob
 *knows* Alice
@@ -68,6 +148,7 @@ WHERE {
   },
   explicit: {
     name: 'Entities (Explicit)',
+    useRdfsMember: true,
     markdown: `# Entities
 
 ## Team Alpha
@@ -132,6 +213,7 @@ WHERE {
   },
   lists: {
     name: 'Nested Lists',
+    useRdfsMember: true,
     markdown: `# Teams
 
 ## Dream team
@@ -192,6 +274,7 @@ WHERE {
   },
   tables: {
     name: 'Tables',
+    useRdfsMember: false,
     markdown: `# Entities
 
 ## Teams
@@ -296,6 +379,7 @@ WHERE {
   },
   wikilinks: {
     name: 'Wikilinks',
+    useRdfsMember: false,
     markdown: `# Team Alpha
 
 [[Bob]] knows [[Alice]]
@@ -386,10 +470,10 @@ async function quadsToTurtle(quads) {
 }
 
 // Process markdown and execute CONSTRUCT in one pass (avoid duplicate parsing)
-async function processMarkdown(markdown, sparqlQuery) {
+async function processMarkdown(markdown, sparqlQuery, options = {}) {
   try {
     // Parse markdown once
-    const facadeQuads = await markdownToRdf(markdown);
+    const facadeQuads = await markdownToRdf(markdown, options);
 
     // Serialize facade
     const facadeTurtle = await quadsToTurtle(facadeQuads);
@@ -433,7 +517,11 @@ async function updateDisplay() {
 
     console.log('Processing markdown (single pass)...');
     // Process markdown once, generate both facade and semantic RDF
-    const { facadeTurtle, semanticTurtle } = await processMarkdown(markdown, example.sparql);
+    const { facadeTurtle, semanticTurtle } = await processMarkdown(
+      markdown,
+      example.sparql,
+      { useRdfsMember: example.useRdfsMember }
+    );
     console.log('Processing complete - Facade:', facadeTurtle.length, 'chars, Semantic:', semanticTurtle.length, 'chars');
 
     // Update both at once to avoid flickering
@@ -477,7 +565,11 @@ document.getElementById('markdown-input').addEventListener('input', async () => 
 
     try {
       // Process markdown once, get both results
-      const { facadeTurtle, semanticTurtle } = await processMarkdown(markdown, example.sparql);
+      const { facadeTurtle, semanticTurtle } = await processMarkdown(
+        markdown,
+        example.sparql,
+        { useRdfsMember: example.useRdfsMember }
+      );
 
       // Update both at once to avoid flickering
       const facadeEl = document.getElementById('facade-output');
