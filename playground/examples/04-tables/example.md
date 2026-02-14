@@ -94,8 +94,8 @@ construct: |
 
 | Person | Team       |
 |--------|------------|
-| Bob    | Dream team |
-| Alice  | Dream team |
+| Bob    | Team Alpha |
+| Alice  | Team Alpha |
 
 ## Relations
 

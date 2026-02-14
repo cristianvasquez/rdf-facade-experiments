@@ -47,7 +47,8 @@ export async function processExample(filePath, options = {}) {
 
   // Generate facade RDF
   if (verbose) console.log('Generating facade RDF...')
-  const facadeQuads = await markdownToRdf(content)
+  const useRdfsMember = frontmatter?.useRdfsMember ?? false
+  const facadeQuads = await markdownToRdf(content, { useRdfsMember })
 
   if (showFacade || verbose) {
     console.log('\n=== FACADE RDF ===')
