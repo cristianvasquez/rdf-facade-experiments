@@ -57,9 +57,11 @@ async function processMarkdown(markdown, sparqlQuery, options = {}) {
 }
 
 export class ExampleComponent {
-  constructor(example, containerElement) {
+  constructor(example, containerElement, allExamples = [], onExampleChange = null) {
     this.example = example
     this.container = containerElement
+    this.allExamples = allExamples
+    this.onExampleChange = onExampleChange
     this.facade = example.facade || 'facade-x'
     this.preserveOrder = example.preserveOrder
     this.layout = 'horizontal'
@@ -68,7 +70,16 @@ export class ExampleComponent {
 
     this.render()
     this.attachEventListeners()
-1  }
+  }
+
+  renderExampleOptions() {
+    if (!this.allExamples || this.allExamples.length === 0) return ''
+    return this.allExamples.map(ex =>
+      `<option value="${ex.id}" ${ex.id === this.example.id ? 'selected' : ''}>
+        ${ex.title}
+      </option>`
+    ).join('')
+  }
 
   getOptions() {
     return {
@@ -82,7 +93,9 @@ export class ExampleComponent {
     this.container.innerHTML = `
       <div class="example-header">
         <div class="example-info">
-          <h2>${this.example.title}</h2>
+          <select class="example-selector" id="example-selector">
+            ${this.renderExampleOptions()}
+          </select>
           ${this.example.description ? `<p class="description">${this.example.description}</p>` : ''}
         </div>
         <button class="layout-toggle" data-layout-toggle title="Toggle layout">
@@ -162,6 +175,14 @@ export class ExampleComponent {
 
   attachEventListeners() {
     const workspace = this.container.querySelector('.workspace')
+    const exampleSelector = this.container.querySelector('#example-selector')
+
+    // Example selector
+    if (exampleSelector && this.onExampleChange) {
+      exampleSelector.addEventListener('change', (e) => {
+        this.onExampleChange(e.target.value)
+      })
+    }
 
     // Layout toggle
     this.container.querySelector('[data-layout-toggle]').addEventListener('click', () => {

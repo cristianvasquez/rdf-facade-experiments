@@ -80,36 +80,20 @@ async function loadExample(exampleId) {
 
   currentExample = example
 
-  // Update menu active state
-  document.querySelectorAll('.menu-item').forEach(item => {
-    item.classList.toggle('active', item.dataset.exampleId === exampleId)
-  })
-
   // Show example container, hide menu
   document.getElementById('menu-view').style.display = 'none'
   document.getElementById('example-view').style.display = 'block'
 
-  // Create component
+  // Create component with example selector
   const container = document.getElementById('example-container')
-  currentComponent = new ExampleComponent(example, container)
+  currentComponent = new ExampleComponent(example, container, examples, loadExample)
   await currentComponent.setMarkdown(example.markdown)
-}
-
-// Back to menu
-function showMenu() {
-  document.getElementById('menu-view').style.display = 'block'
-  document.getElementById('example-view').style.display = 'none'
-  currentExample = null
-  currentComponent = null
 }
 
 // Initialize
 renderMenu()
 
-// Back button handler
-document.getElementById('back-to-menu').addEventListener('click', showMenu)
-
-// Load first example by default
+// Load first example by default (skip menu)
 if (examples.length > 0) {
   loadExample(examples[0].id)
 }
