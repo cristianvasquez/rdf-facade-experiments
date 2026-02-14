@@ -9,10 +9,15 @@ import { ns } from './namespaces.js'
  * @param {Object} options - Configuration options
  * @param {boolean} options.useNamedNodes - If true, uses named nodes with URIs instead of blank nodes
  * @param {string} options.baseUri - Base URI for generating named node URIs (required if useNamedNodes is true)
+ * @param {boolean} options.useRdfsMember - If true, emits rdfs:member in addition to rdf:_N predicates
  * @returns {Transform} A Transform stream that outputs RDF quads
  */
 export function createMarkdownToRdfStream(options = {}) {
-  const { useNamedNodes = false, baseUri = 'http://example.org/doc#' } = options
+  const {
+    useNamedNodes = false,
+    baseUri = 'http://example.org/doc#',
+    useRdfsMember = false
+  } = options
 
   let buffer = ''
   let nodeCounter = 0
@@ -96,6 +101,15 @@ export function createMarkdownToRdfStream(options = {}) {
         rdf.namedNode(ns.rdf(`_${index + 1}`)),
         subject
       )
+
+      // Also emit rdfs:member if requested
+      if (useRdfsMember) {
+        yield rdf.quad(
+          parent,
+          rdf.namedNode(ns.rdfs('member')),
+          subject
+        )
+      }
     }
 
     // Add node properties as literals (skip structural properties)
