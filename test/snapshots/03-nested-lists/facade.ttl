@@ -1,106 +1,172 @@
 @prefix fx: <http://sparql.xyz/facade-x/ns/>.
 @prefix md: <http://example.org/markdown#>.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 
 [ a md:Document;
-  rdf:_1 [ a md:Section;
-      rdf:_1 [ a md:Heading;
-          fx:raw "Teams";
-          fx:text "Teams";
-          rdf:_1 [ a md:Text;
-              fx:center "false";
-              fx:raw "Teams"
-            ]
-        ];
-      rdf:_2 [ a md:Section;
-          rdf:_1 [ a md:Heading;
-              fx:raw "Team Alpha";
-              fx:text "Team Alpha";
-              rdf:_1 [ a md:Text;
-                  fx:center "false";
-                  fx:raw "Team Alpha"
-                ]
-            ];
-          rdf:_2 [ a md:List;
-              fx:ordered "false";
-              fx:raw "BobKnowsAlice\nAliceLikesIcecream";
-              rdf:_1 [ a md:List_item;
-                  fx:raw "BobKnowsAlice";
-                  rdf:_1 [ a md:Paragraph;
-                      fx:raw "Bob";
-                      rdf:_1 [ a md:Text;
-                          fx:center "false";
-                          fx:raw "Bob"
-                        ]
-                    ];
-                  rdf:_2 [ a md:List;
-                      fx:ordered "false";
-                      fx:raw "KnowsAlice";
-                      rdf:_1 [ a md:List_item;
-                          fx:raw "KnowsAlice";
-                          rdf:_1 [ a md:Paragraph;
-                              fx:raw "Knows";
-                              rdf:_1 [ a md:Text;
-                                  fx:center "false";
-                                  fx:raw "Knows"
-                                ]
-                            ];
-                          rdf:_2 [ a md:List;
-                              fx:ordered "false";
-                              fx:raw "Alice";
-                              rdf:_1 [ a md:List_item;
-                                  fx:raw "Alice";
-                                  rdf:_1 [ a md:Paragraph;
-                                      fx:raw "Alice";
-                                      rdf:_1 [ a md:Text;
-                                          fx:center "false";
-                                          fx:raw "Alice"
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ];
-              rdf:_2 [ a md:List_item;
-                  fx:raw "AliceLikesIcecream";
-                  rdf:_1 [ a md:Paragraph;
-                      fx:raw "Alice";
-                      rdf:_1 [ a md:Text;
-                          fx:center "false";
-                          fx:raw "Alice"
-                        ]
-                    ];
-                  rdf:_2 [ a md:List;
-                      fx:ordered "false";
-                      fx:raw "LikesIcecream";
-                      rdf:_1 [ a md:List_item;
-                          fx:raw "LikesIcecream";
-                          rdf:_1 [ a md:Paragraph;
-                              fx:raw "Likes";
-                              rdf:_1 [ a md:Text;
-                                  fx:center "false";
-                                  fx:raw "Likes"
-                                ]
-                            ];
-                          rdf:_2 [ a md:List;
-                              fx:ordered "false";
-                              fx:raw "Icecream";
-                              rdf:_1 [ a md:List_item;
-                                  fx:raw "Icecream";
-                                  rdf:_1 [ a md:Paragraph;
-                                      fx:raw "Icecream";
-                                      rdf:_1 [ a md:Text;
-                                          fx:center "false";
-                                          fx:raw "Icecream"
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    ]
+  rdf:_1 _:b1;
+  rdfs:member _:b1
 ].
+
+_:b1 a md:Section;
+  rdf:_1 _:b2;
+  rdf:_2 _:b3;
+  rdfs:member
+    _:b2,
+    _:b3.
+
+_:b2 a md:Heading;
+  fx:raw "Teams";
+  fx:text "Teams";
+  rdf:_1 _:b4;
+  rdfs:member _:b4.
+
+_:b4 a md:Text;
+  fx:center "false";
+  fx:raw "Teams".
+
+_:b3 a md:Section;
+  rdf:_1 _:b5;
+  rdf:_2 _:b6;
+  rdfs:member
+    _:b5,
+    _:b6.
+
+_:b5 a md:Heading;
+  fx:raw "Team Alpha";
+  fx:text "Team Alpha";
+  rdf:_1 _:b7;
+  rdfs:member _:b7.
+
+_:b7 a md:Text;
+  fx:center "false";
+  fx:raw "Team Alpha".
+
+_:b6 a md:List;
+  fx:ordered "false";
+  fx:raw "BobKnowsAlice\nAliceLikesIcecream";
+  rdf:_1 _:b8;
+  rdf:_2 _:b9;
+  rdfs:member
+    _:b8,
+    _:b9.
+
+_:b8 a md:List_item;
+  fx:raw "BobKnowsAlice";
+  rdf:_1 _:b10;
+  rdf:_2 _:b11;
+  rdfs:member
+    _:b10,
+    _:b11.
+
+_:b10 a md:Paragraph;
+  fx:raw "Bob";
+  rdf:_1 _:b12;
+  rdfs:member _:b12.
+
+_:b12 a md:Text;
+  fx:center "false";
+  fx:raw "Bob".
+
+_:b11 a md:List;
+  fx:ordered "false";
+  fx:raw "KnowsAlice";
+  rdf:_1 _:b13;
+  rdfs:member _:b13.
+
+_:b13 a md:List_item;
+  fx:raw "KnowsAlice";
+  rdf:_1 _:b14;
+  rdf:_2 _:b15;
+  rdfs:member
+    _:b14,
+    _:b15.
+
+_:b14 a md:Paragraph;
+  fx:raw "Knows";
+  rdf:_1 _:b16;
+  rdfs:member _:b16.
+
+_:b16 a md:Text;
+  fx:center "false";
+  fx:raw "Knows".
+
+_:b15 a md:List;
+  fx:ordered "false";
+  fx:raw "Alice";
+  rdf:_1 _:b17;
+  rdfs:member _:b17.
+
+_:b17 a md:List_item;
+  fx:raw "Alice";
+  rdf:_1 _:b18;
+  rdfs:member _:b18.
+
+_:b18 a md:Paragraph;
+  fx:raw "Alice";
+  rdf:_1 _:b19;
+  rdfs:member _:b19.
+
+_:b19 a md:Text;
+  fx:center "false";
+  fx:raw "Alice".
+
+_:b9 a md:List_item;
+  fx:raw "AliceLikesIcecream";
+  rdf:_1 _:b20;
+  rdf:_2 _:b21;
+  rdfs:member
+    _:b20,
+    _:b21.
+
+_:b20 a md:Paragraph;
+  fx:raw "Alice";
+  rdf:_1 _:b22;
+  rdfs:member _:b22.
+
+_:b22 a md:Text;
+  fx:center "false";
+  fx:raw "Alice".
+
+_:b21 a md:List;
+  fx:ordered "false";
+  fx:raw "LikesIcecream";
+  rdf:_1 _:b23;
+  rdfs:member _:b23.
+
+_:b23 a md:List_item;
+  fx:raw "LikesIcecream";
+  rdf:_1 _:b24;
+  rdf:_2 _:b25;
+  rdfs:member
+    _:b24,
+    _:b25.
+
+_:b24 a md:Paragraph;
+  fx:raw "Likes";
+  rdf:_1 _:b26;
+  rdfs:member _:b26.
+
+_:b26 a md:Text;
+  fx:center "false";
+  fx:raw "Likes".
+
+_:b25 a md:List;
+  fx:ordered "false";
+  fx:raw "Icecream";
+  rdf:_1 _:b27;
+  rdfs:member _:b27.
+
+_:b27 a md:List_item;
+  fx:raw "Icecream";
+  rdf:_1 _:b28;
+  rdfs:member _:b28.
+
+_:b28 a md:Paragraph;
+  fx:raw "Icecream";
+  rdf:_1 _:b29;
+  rdfs:member _:b29.
+
+_:b29 a md:Text;
+  fx:center "false";
+  fx:raw "Icecream".

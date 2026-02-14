@@ -1,5 +1,5 @@
 ---
-useRdfsMember: false
+useRdfsMember: true
 construct: |
   PREFIX md: <http://example.org/markdown#>
   PREFIX fx: <http://sparql.xyz/facade-x/ns/>
@@ -14,12 +14,12 @@ construct: |
   WHERE {
     # Each H2 section is an entity
     ?section a md:Section ;
-      rdf:_1 [ a md:Heading ;
-               fx:text ?entityName ] .
+      rdfs:member [ a md:Heading ;
+                    fx:text ?entityName ] .
 
     # Get all paragraphs in the section (property statements)
-    ?section ?idx ?paragraph .
-    FILTER(?idx != rdf:_1)  # Skip the heading
+    ?section rdfs:member ?paragraph .
+    FILTER NOT EXISTS { ?paragraph a md:Heading }  # Skip headings
 
     ?paragraph a md:Paragraph ;
       rdf:_1 [ a md:Emphasis ;

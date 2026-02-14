@@ -1,5 +1,5 @@
 ---
-useRdfsMember: false
+useRdfsMember: true
 construct: |
   PREFIX md: <http://example.org/markdown#>
   PREFIX fx: <http://sparql.xyz/facade-x/ns/>
@@ -19,29 +19,29 @@ construct: |
   WHERE {
     # H2 Section = Team
     ?teamSection a md:Section ;
-      rdf:_1 [ a md:Heading ; fx:text ?teamName ] ;
-      rdf:_2 ?mainList .
+      rdfs:member [ a md:Heading ; fx:text ?teamName ] ;
+      rdfs:member ?mainList .
 
     # Main list contains people
     ?mainList a md:List ;
-      ?personIdx ?personItem .
+      rdfs:member ?personItem .
 
     # Each top-level list item is a person
     ?personItem a md:List_item ;
-      rdf:_1 [ a md:Paragraph ; fx:raw ?personName ] ;
-      rdf:_2 ?relationshipList .
+      rdfs:member [ a md:Paragraph ; fx:raw ?personName ] ;
+      rdfs:member ?relationshipList .
 
     # Nested list contains relationships
     ?relationshipList a md:List ;
-      ?relIdx ?relationshipItem .
+      rdfs:member ?relationshipItem .
 
     # Each relationship item
     ?relationshipItem a md:List_item ;
-      rdf:_1 [ a md:Paragraph ; fx:raw ?relationshipName ] ;
-      rdf:_2 [ a md:List ;
-               rdf:_1 [ a md:List_item ;
-                        rdf:_1 [ a md:Paragraph ;
-                                 fx:raw ?objectName ] ] ] .
+      rdfs:member [ a md:Paragraph ; fx:raw ?relationshipName ] ;
+      rdfs:member [ a md:List ;
+                    rdfs:member [ a md:List_item ;
+                                  rdfs:member [ a md:Paragraph ;
+                                                fx:raw ?objectName ] ] ] .
 
     # Create IRIs
     BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
