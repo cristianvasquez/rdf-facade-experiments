@@ -1,12 +1,12 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  root: '.',
+  root: 'playground',
   build: {
-    outDir: '../dist-playground',
+    outDir: 'dist-playground',
     rollupOptions: {
       input: {
-        main: './index.html'
+        main: 'playground/index.html'
       }
     }
   },

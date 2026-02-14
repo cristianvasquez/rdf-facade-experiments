@@ -1,8 +1,8 @@
-import { markdownToRdf } from './src/stream-markdown-to-rdf.js'
+import { markdownToRdf } from '../src/stream-markdown-to-rdf.js'
 import { Store } from 'n3'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import Serializer from '@rdfjs/serializer-turtle'
-import { ns } from './src/namespaces.js'
+import { ns } from '../src/namespaces.js'
 import Prism from 'prismjs'
 import 'prismjs/themes/prism-tomorrow.css'
 
