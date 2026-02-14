@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown to RDF Playground</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #333;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .intro {
+      color: #999;
+      font-size: 14px;
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    .intro strong {
+      color: #e0e0e0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #999;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    .tab.active {
+      background: #0066cc;
+      color: #fff;
+      border-color: #0066cc;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+    }
+
+    .panel-header {
+      background: #2a2a2a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #333;
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-header .badge {
+      background: #444;
+      color: #999;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .panel-header.markdown { border-left: 3px solid #ff6b6b; }
+    .panel-header.facade { border-left: 3px solid #4dabf7; }
+    .panel-header.semantic { border-left: 3px solid #51cf66; }
+
+    .panel-content {
+      padding: 16px;
+      flex: 1;
+      overflow: auto;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      border: none;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: none;
+      padding: 0;
+      outline: none;
+    }
+
+    .query-panel {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .query-header {
+      background: #2a2a2a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #333;
+      border-left: 3px solid #cc5de8;
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .query-content {
+      padding: 16px;
+      max-height: 300px;
+      overflow: auto;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Prism.js overrides for dark theme */
+    pre[class*="language-"] {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    code[class*="language-"] {
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      text-shadow: none;
+    }
+
+    .prompt-section {
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .prompt-header {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .prompt-output {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e0e0e0;
+    }
+
+    .copy-btn {
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #0052a3;
+    }
+
+    .copy-btn:active {
+      background: #004080;
+    }
+
+    .copy-btn.copied {
+      background: #51cf66;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      padding: 16px;
+      background: #2a2a2a;
+      border-radius: 8px;
+    }
+
+    .pipeline-step {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      background: #1a1a1a;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .pipeline-step.markdown { border: 2px solid #ff6b6b; }
+    .pipeline-step.facade { border: 2px solid #4dabf7; }
+    .pipeline-step.sparql { border: 2px solid #cc5de8; }
+    .pipeline-step.semantic { border: 2px solid #51cf66; }
+
+    .pipeline-arrow {
+      font-size: 20px;
+      color: #666;
+    }
+
+    @media (max-width: 1400px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔄 Markdown to RDF Playground</h1>
+      <p class="intro">
+        <strong>Literate RDF authoring</strong> through markdown: author semantic graphs using familiar markdown syntax.
+        The <strong>facade</strong> is a general intermediate representation of the markdown structure.
+        The <strong>SPARQL CONSTRUCT</strong> mapping makes the semantics explicit, transforming the facade into domain RDF.
+        Same semantic meaning, different syntactic styles—you choose what fits your workflow.
+      </p>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" data-example="emphasis">Dream Team (Emphasis)</div>
+      <div class="tab" data-example="explicit">Entities (Explicit)</div>
+      <div class="tab" data-example="lists">Nested Lists</div>
+      <div class="tab" data-example="tables">Tables</div>
+      <div class="tab" data-example="wikilinks">Wikilinks</div>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-step markdown">Markdown<br>Input</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step facade">Facade<br>RDF</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step sparql">SPARQL<br>Transform</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step semantic">Semantic<br>RDF</div>
+    </div>
+
+    <div class="query-panel">
+      <div class="query-header">SPARQL CONSTRUCT Mapping</div>
+      <div class="query-content">
+        <pre><code id="sparql-query" class="language-sparql"></code></pre>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-header markdown">
+          Markdown Input
+          <span class="badge">editable</span>
+        </div>
+        <div class="panel-content">
+          <textarea id="markdown-input" spellcheck="false"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header facade">
+          Facade RDF
+          <span class="badge">intermediate</span>
+        </div>
+        <div class="panel-content">
+          <pre><code id="facade-output" class="language-turtle"></code></pre>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header semantic">
+          Semantic RDF
+          <span class="badge">output</span>
+        </div>
+        <div class="panel-content">
+          <pre><code id="semantic-output" class="language-turtle"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="prompt-section">
+      <div class="prompt-header">Generated Prompt</div>
+      <div class="prompt-output" id="prompt-output"></div>
+      <button class="copy-btn" id="copy-btn">Copy Prompt</button>
+    </div>
+  </div>
+
+  <script>
+    const examples = {
+      emphasis: {
+        name: 'Dream Team (Emphasis)',
+        markdown: `# Dream team
+
+## Bob
+*knows* Alice
+
+## Alice
+*likes* Icecream`,
+        sparql: `PREFIX md: <http://example.org/markdown#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX : <http://example.org/>
+
+CONSTRUCT {
+  # Team
+  ?team a :Team ;
+    :name ?teamName ;
+    :hasMember ?person .
+
+  # Person with relationships
+  ?person a foaf:Person ;
+    foaf:name ?personName ;
+    ?predicate ?object .
+}
+WHERE {
+  # H1 Section = Team
+  ?doc a md:Document ;
+    rdf:_1 ?teamSection .
+
+  ?teamSection a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text ?teamName ] ;
+    ?idx ?personSection .
+
+  FILTER(?idx != rdf:_1)
+
+  # H2 Section = Person
+  ?personSection a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text ?personName ] ;
+    rdf:_2 [ a md:Paragraph ;
+             rdf:_1 [ a md:Emphasis ;
+                      rdf:_1 [ fx:raw ?relationshipName ] ] ;
+             rdf:_2 [ a md:Text ;
+                      fx:raw ?objectRaw ] ] .
+
+  BIND(REPLACE(?objectRaw, "^ ", "") AS ?objectName)
+  BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
+  BIND(IRI(CONCAT("urn:", ?personName)) AS ?person)
+  BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+
+  BIND(IF(?relationshipName = "knows", foaf:knows,
+       IF(?relationshipName = "likes", :likes,
+          IRI(CONCAT(str(:), ?relationshipName)))) AS ?predicate)
+}`,
+        facade: `@prefix : <http://example.org/> .
+@prefix md: <http://example.org/markdown#> .
+@prefix fx: <http://sparql.xyz/facade-x/ns/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+_:doc a md:Document ;
+  rdf:_1 [
+    a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text "Dream team" ] ;
+    rdf:_2 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Bob" ] ;
+      rdf:_2 [
+        a md:Paragraph ;
+        rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "knows" ] ] ;
+        rdf:_2 [ a md:Text ; fx:raw " Alice" ]
+      ]
+    ] ;
+    rdf:_3 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Alice" ] ;
+      rdf:_2 [
+        a md:Paragraph ;
+        rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "likes" ] ] ;
+        rdf:_2 [ a md:Text ; fx:raw " Icecream" ]
+      ]
+    ]
+  ] .`,
+        semantic: `@prefix : <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:Dream_team a :Team ;
+  :name "Dream team" ;
+  :hasMember :Bob, :Alice .
+
+:Bob a foaf:Person ;
+  foaf:name "Bob" ;
+  foaf:knows :Alice .
+
+:Alice a foaf:Person ;
+  foaf:name "Alice" ;
+  :likes :Icecream .`
+      },
+      explicit: {
+        name: 'Entities (Explicit)',
+        markdown: `# Entities
+
+## Dream Team
+
+*is a* Team
+
+*has member* Bob
+
+*has member* Alice
+
+## Bob
+
+*is a* Person
+
+*knows* Alice
+
+## Alice
+
+*is a* Person
+
+*likes* Icecream`,
+        sparql: `PREFIX md: <http://example.org/markdown#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX : <http://example.org/>
+
+CONSTRUCT {
+  ?entity a ?type ;
+    ?predicate ?object .
+}
+WHERE {
+  # Each H2 section is an entity
+  ?section a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text ?entityName ] .
+
+  # Get all paragraphs (property statements)
+  ?section ?idx ?paragraph .
+  FILTER(?idx != rdf:_1)
+
+  ?paragraph a md:Paragraph ;
+    rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw ?propertyName ] ] ;
+    rdf:_2 [ a md:Text ; fx:raw ?valueRaw ] .
+
+  BIND(REPLACE(?valueRaw, "^ ", "") AS ?valueName)
+  BIND(IRI(CONCAT("urn:", REPLACE(?entityName, " ", "_"))) AS ?entity)
+
+  # Handle "is a" for rdf:type
+  BIND(IF(?propertyName = "is a", rdf:type,
+        IF(?propertyName = "has member", :hasMember,
+        IF(?propertyName = "knows", foaf:knows,
+        IF(?propertyName = "likes", :likes,
+           IRI(CONCAT(str(:), REPLACE(?propertyName, " ", "_"))))))) AS ?predicate)
+
+  # Determine if value is a type or entity
+  BIND(IF(?propertyName = "is a",
+          IF(?valueName = "Team", :Team,
+          IF(?valueName = "Person", foaf:Person,
+             IRI(CONCAT(str(:), ?valueName)))),
+          IRI(CONCAT("urn:", REPLACE(?valueName, " ", "_")))) AS ?object)
+}`,
+        facade: `@prefix : <http://example.org/> .
+@prefix md: <http://example.org/markdown#> .
+@prefix fx: <http://sparql.xyz/facade-x/ns/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+_:doc a md:Document ;
+  rdf:_1 [
+    a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text "Entities" ] ;
+    rdf:_2 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Dream Team" ] ;
+      rdf:_2 [ a md:Paragraph ;
+               rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "is a" ] ] ;
+               rdf:_2 [ a md:Text ; fx:raw " Team" ] ] ;
+      rdf:_3 [ a md:Paragraph ;
+               rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "has member" ] ] ;
+               rdf:_2 [ a md:Text ; fx:raw " Bob" ] ] ;
+      rdf:_4 [ a md:Paragraph ;
+               rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "has member" ] ] ;
+               rdf:_2 [ a md:Text ; fx:raw " Alice" ] ]
+    ] ;
+    rdf:_3 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Bob" ] ;
+      rdf:_2 [ a md:Paragraph ;
+               rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "is a" ] ] ;
+               rdf:_2 [ a md:Text ; fx:raw " Person" ] ] ;
+      rdf:_3 [ a md:Paragraph ;
+               rdf:_1 [ a md:Emphasis ; rdf:_1 [ fx:raw "knows" ] ] ;
+               rdf:_2 [ a md:Text ; fx:raw " Alice" ] ]
+    ]
+  ] .`,
+        semantic: `@prefix : <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:Dream_Team a :Team ;
+  :hasMember :Bob, :Alice .
+
+:Bob a foaf:Person ;
+  foaf:knows :Alice .
+
+:Alice a foaf:Person ;
+  :likes :Icecream .`
+      },
+      lists: {
+        name: 'Nested Lists',
+        markdown: `# Teams
+
+## Dream team
+- Bob
+  - Knows
+    - Alice
+- Alice
+  - Likes
+    - Icecream`,
+        sparql: `PREFIX md: <http://example.org/markdown#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX : <http://example.org/>
+
+CONSTRUCT {
+  ?team a :Team ;
+    :name ?teamName ;
+    :hasMember ?person .
+
+  ?person a foaf:Person ;
+    foaf:name ?personName ;
+    ?predicate ?object .
+}
+WHERE {
+  # H2 Section = Team
+  ?teamSection a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text ?teamName ] ;
+    rdf:_2 ?mainList .
+
+  # Main list contains people
+  ?mainList a md:List ;
+    ?personIdx ?personItem .
+
+  # Each list item is a person
+  ?personItem a md:List_item ;
+    rdf:_1 [ a md:Paragraph ; fx:raw ?personName ] ;
+    rdf:_2 ?relationshipList .
+
+  # Nested list contains relationships
+  ?relationshipList a md:List ;
+    ?relIdx ?relationshipItem .
+
+  ?relationshipItem a md:List_item ;
+    rdf:_1 [ a md:Paragraph ; fx:raw ?relationshipName ] ;
+    rdf:_2 [ a md:List ;
+             rdf:_1 [ a md:List_item ;
+                      rdf:_1 [ a md:Paragraph ; fx:raw ?objectName ] ] ] .
+
+  BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
+  BIND(IRI(CONCAT("urn:", ?personName)) AS ?person)
+  BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+
+  BIND(IF(LCASE(?relationshipName) = "knows", foaf:knows,
+       IF(LCASE(?relationshipName) = "likes", :likes,
+          IRI(CONCAT(str(:), LCASE(?relationshipName))))) AS ?predicate)
+}`,
+        facade: `@prefix : <http://example.org/> .
+@prefix md: <http://example.org/markdown#> .
+@prefix fx: <http://sparql.xyz/facade-x/ns/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+_:doc a md:Document ;
+  rdf:_1 [
+    a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text "Teams" ] ;
+    rdf:_2 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Dream team" ] ;
+      rdf:_2 [
+        a md:List ;
+        rdf:_1 [
+          a md:List_item ;
+          rdf:_1 [ a md:Paragraph ; fx:raw "Bob" ] ;
+          rdf:_2 [
+            a md:List ;
+            rdf:_1 [
+              a md:List_item ;
+              rdf:_1 [ a md:Paragraph ; fx:raw "Knows" ] ;
+              rdf:_2 [
+                a md:List ;
+                rdf:_1 [ a md:List_item ;
+                         rdf:_1 [ a md:Paragraph ; fx:raw "Alice" ] ]
+              ]
+            ]
+          ]
+        ] ;
+        rdf:_2 [
+          a md:List_item ;
+          rdf:_1 [ a md:Paragraph ; fx:raw "Alice" ] ;
+          rdf:_2 [
+            a md:List ;
+            rdf:_1 [
+              a md:List_item ;
+              rdf:_1 [ a md:Paragraph ; fx:raw "Likes" ] ;
+              rdf:_2 [
+                a md:List ;
+                rdf:_1 [ a md:List_item ;
+                         rdf:_1 [ a md:Paragraph ; fx:raw "Icecream" ] ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ] .`,
+        semantic: `@prefix : <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:Dream_team a :Team ;
+  :name "Dream team" ;
+  :hasMember :Bob, :Alice .
+
+:Bob a foaf:Person ;
+  foaf:name "Bob" ;
+  foaf:knows :Alice .
+
+:Alice a foaf:Person ;
+  foaf:name "Alice" ;
+  :likes :Icecream .`
+      },
+      tables: {
+        name: 'Tables',
+        markdown: `# Entities
+
+## Teams
+
+| Person | Team       |
+|--------|------------|
+| Bob    | Dream team |
+| Alice  | Dream team |
+
+## Relations
+
+| Person | Knows |
+|--------|-------|
+| Bob    | Alice |
+
+## Preferences
+
+| Person | Likes    |
+|--------|----------|
+| Alice  | Icecream |`,
+        sparql: `PREFIX md: <http://example.org/markdown#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX : <http://example.org/>
+
+CONSTRUCT {
+  ?team a :Team ;
+    :name ?teamName ;
+    :hasMember ?person .
+
+  ?person a foaf:Person ;
+    foaf:name ?personName .
+
+  ?person1 foaf:knows ?person2 .
+  ?person3 :likes ?object .
+}
+WHERE {
+  # Teams section
+  {
+    ?teamsSection a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Teams" ] ;
+      rdf:_2 ?teamsTable .
+
+    ?teamsTable a md:Table ;
+      ?rowIdx ?row .
+
+    FILTER(?rowIdx != rdf:_1)  # Skip header
+
+    ?row a md:Table_row ;
+      rdf:_1 [ a md:Table_cell ;
+               rdf:_1 [ fx:content ?personName ] ] ;
+      rdf:_2 [ a md:Table_cell ;
+               rdf:_1 [ fx:content ?teamName ] ] .
+
+    BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
+    BIND(IRI(CONCAT("urn:", ?personName)) AS ?person)
+  }
+  UNION
+  # Relations section
+  {
+    ?relationsSection a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Relations" ] ;
+      rdf:_2 ?relationsTable .
+
+    ?relationsTable a md:Table ;
+      ?rowIdx2 ?row2 .
+
+    FILTER(?rowIdx2 != rdf:_1)
+
+    ?row2 a md:Table_row ;
+      rdf:_1 [ a md:Table_cell ;
+               rdf:_1 [ fx:content ?person1Name ] ] ;
+      rdf:_2 [ a md:Table_cell ;
+               rdf:_1 [ fx:content ?person2Name ] ] .
+
+    BIND(IRI(CONCAT("urn:", ?person1Name)) AS ?person1)
+    BIND(IRI(CONCAT("urn:", ?person2Name)) AS ?person2)
+  }
+  UNION
+  # Preferences
+  {
+    ?prefsSection a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Preferences" ] ;
+      rdf:_2 ?prefsTable .
+
+    ?prefsTable a md:Table ;
+      ?rowIdx3 ?row3 .
+
+    FILTER(?rowIdx3 != rdf:_1)
+
+    ?row3 a md:Table_row ;
+      rdf:_1 [ a md:Table_cell ;
+               rdf:_1 [ fx:content ?person3Name ] ] ;
+      rdf:_2 [ a md:Table_cell ;
+               rdf:_1 [ fx:content ?objectName ] ] .
+
+    BIND(IRI(CONCAT("urn:", ?person3Name)) AS ?person3)
+    BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+  }
+}`,
+        facade: `@prefix : <http://example.org/> .
+@prefix md: <http://example.org/markdown#> .
+@prefix fx: <http://sparql.xyz/facade-x/ns/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+_:doc a md:Document ;
+  rdf:_1 [
+    a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text "Entities" ] ;
+    rdf:_2 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Teams" ] ;
+      rdf:_2 [
+        a md:Table ;
+        rdf:_1 [
+          a md:Table_row ;
+          rdf:_1 [ a md:Table_cell ; rdf:_1 [ fx:content "Person" ] ] ;
+          rdf:_2 [ a md:Table_cell ; rdf:_1 [ fx:content "Team" ] ]
+        ] ;
+        rdf:_2 [
+          a md:Table_row ;
+          rdf:_1 [ a md:Table_cell ; rdf:_1 [ fx:content "Bob" ] ] ;
+          rdf:_2 [ a md:Table_cell ; rdf:_1 [ fx:content "Dream team" ] ]
+        ] ;
+        rdf:_3 [
+          a md:Table_row ;
+          rdf:_1 [ a md:Table_cell ; rdf:_1 [ fx:content "Alice" ] ] ;
+          rdf:_2 [ a md:Table_cell ; rdf:_1 [ fx:content "Dream team" ] ]
+        ]
+      ]
+    ] ;
+    rdf:_3 [
+      a md:Section ;
+      rdf:_1 [ a md:Heading ; fx:text "Relations" ] ;
+      rdf:_2 [
+        a md:Table ;
+        rdf:_1 [
+          a md:Table_row ;
+          rdf:_1 [ a md:Table_cell ; rdf:_1 [ fx:content "Person" ] ] ;
+          rdf:_2 [ a md:Table_cell ; rdf:_1 [ fx:content "Knows" ] ]
+        ] ;
+        rdf:_2 [
+          a md:Table_row ;
+          rdf:_1 [ a md:Table_cell ; rdf:_1 [ fx:content "Bob" ] ] ;
+          rdf:_2 [ a md:Table_cell ; rdf:_1 [ fx:content "Alice" ] ]
+        ]
+      ]
+    ]
+  ] .`,
+        semantic: `@prefix : <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:Dream_team a :Team ;
+  :name "Dream team" ;
+  :hasMember :Bob, :Alice .
+
+:Bob a foaf:Person ;
+  foaf:name "Bob" ;
+  foaf:knows :Alice .
+
+:Alice a foaf:Person ;
+  foaf:name "Alice" ;
+  :likes :Icecream .`
+      },
+      wikilinks: {
+        name: 'Wikilinks',
+        markdown: `# Dream Team
+
+[[Bob]] knows [[Alice]]
+[[Alice]] likes [[Icecream]]
+
+Members: [[Bob]], [[Alice]]`,
+        sparql: `PREFIX md: <http://example.org/markdown#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX : <http://example.org/>
+
+CONSTRUCT {
+  ?team a :Team ;
+    :name ?teamName ;
+    :hasMember ?member .
+
+  ?subject a foaf:Person ;
+    foaf:name ?subjectName ;
+    ?predicate ?object .
+}
+WHERE {
+  # Team section (H1)
+  ?teamSection a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text ?teamName ] .
+
+  # Relationship statements
+  {
+    ?teamSection ?idx ?para .
+    FILTER(?idx != rdf:_1)
+
+    ?para a md:Paragraph ;
+      rdf:_1 [ a md:Wikilink ; fx:text ?subjectName ] ;
+      rdf:_2 [ a md:Text ; fx:raw ?relationshipRaw ] ;
+      rdf:_3 [ a md:Wikilink ; fx:text ?objectName ] .
+
+    BIND(REPLACE(REPLACE(?relationshipRaw, "^ ", ""), " $", "") AS ?relationshipName)
+    BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
+    BIND(IRI(CONCAT("urn:", ?subjectName)) AS ?subject)
+    BIND(IRI(CONCAT("urn:", ?objectName)) AS ?object)
+
+    BIND(IF(?relationshipName = "knows", foaf:knows,
+         IF(?relationshipName = "likes", :likes,
+            IRI(CONCAT(str(:), ?relationshipName)))) AS ?predicate)
+  }
+  UNION
+  # Members list
+  {
+    ?teamSection ?idx2 ?membersPara .
+    FILTER(?idx2 != rdf:_1)
+
+    ?membersPara a md:Paragraph ;
+      rdf:_1 [ a md:Text ; fx:raw ?membersPrefix ] .
+
+    FILTER(CONTAINS(?membersPrefix, "Members:"))
+
+    ?membersPara ?linkIdx [ a md:Wikilink ; fx:text ?memberName ] .
+
+    BIND(IRI(CONCAT("urn:", REPLACE(?teamName, " ", "_"))) AS ?team)
+    BIND(IRI(CONCAT("urn:", ?memberName)) AS ?member)
+  }
+}`,
+        facade: `@prefix : <http://example.org/> .
+@prefix md: <http://example.org/markdown#> .
+@prefix fx: <http://sparql.xyz/facade-x/ns/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+_:doc a md:Document ;
+  rdf:_1 [
+    a md:Section ;
+    rdf:_1 [ a md:Heading ; fx:text "Dream Team" ] ;
+    rdf:_2 [
+      a md:Paragraph ;
+      rdf:_1 [ a md:Wikilink ; fx:text "Bob" ] ;
+      rdf:_2 [ a md:Text ; fx:raw " knows " ] ;
+      rdf:_3 [ a md:Wikilink ; fx:text "Alice" ]
+    ] ;
+    rdf:_3 [
+      a md:Paragraph ;
+      rdf:_1 [ a md:Wikilink ; fx:text "Alice" ] ;
+      rdf:_2 [ a md:Text ; fx:raw " likes " ] ;
+      rdf:_3 [ a md:Wikilink ; fx:text "Icecream" ]
+    ] ;
+    rdf:_4 [
+      a md:Paragraph ;
+      rdf:_1 [ a md:Text ; fx:raw "Members: " ] ;
+      rdf:_2 [ a md:Wikilink ; fx:text "Bob" ] ;
+      rdf:_3 [ a md:Text ; fx:raw ", " ] ;
+      rdf:_4 [ a md:Wikilink ; fx:text "Alice" ]
+    ]
+  ] .`,
+        semantic: `@prefix : <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:Dream_Team a :Team ;
+  :name "Dream Team" ;
+  :hasMember :Bob, :Alice .
+
+:Bob a foaf:Person ;
+  foaf:name "Bob" ;
+  foaf:knows :Alice .
+
+:Alice a foaf:Person ;
+  foaf:name "Alice" ;
+  :likes :Icecream .`
+      }
+    };
+
+    let currentExample = 'emphasis';
+
+    function updateDisplay() {
+      const example = examples[currentExample];
+
+      document.getElementById('markdown-input').value = example.markdown;
+
+      // Update SPARQL query
+      const sparqlEl = document.getElementById('sparql-query');
+      sparqlEl.textContent = example.sparql;
+      Prism.highlightElement(sparqlEl);
+
+      // Update facade RDF
+      const facadeEl = document.getElementById('facade-output');
+      facadeEl.textContent = example.facade;
+      Prism.highlightElement(facadeEl);
+
+      // Update semantic RDF
+      const semanticEl = document.getElementById('semantic-output');
+      semanticEl.textContent = example.semantic;
+      Prism.highlightElement(semanticEl);
+
+      updatePrompt();
+    }
+
+    function updatePrompt() {
+      const example = examples[currentExample];
+      const markdown = document.getElementById('markdown-input').value;
+
+      const isModified = markdown !== example.markdown;
+
+      let prompt = `Create a markdown-to-RDF transformation using the "${example.name}" pattern. `;
+
+      if (isModified) {
+        prompt += `Use this custom markdown:\n\n${markdown}\n\n`;
+      } else {
+        prompt += `The pattern uses ${getPatternDescription(currentExample)}. `;
+      }
+
+      prompt += `Generate a SPARQL CONSTRUCT mapping that transforms the markdown facade (structured representation) into semantic RDF. `;
+      prompt += `The facade captures the markdown structure (sections, headings, paragraphs, emphasis, lists, tables, wikilinks) as RDF. `;
+      prompt += `The CONSTRUCT query extracts domain semantics (teams, people, relationships) from this structural representation.`;
+
+      document.getElementById('prompt-output').textContent = prompt;
+    }
+
+    function getPatternDescription(example) {
+      const descriptions = {
+        emphasis: '*emphasis* syntax to mark predicates (e.g., *knows* Alice)',
+        explicit: 'explicit entity declarations with *is a* for types and property statements',
+        lists: 'nested bullet lists where depth indicates relationships',
+        tables: 'markdown tables to represent entities and relationships in tabular form',
+        wikilinks: '[[wikilink]] syntax to mark entities and relationships between them'
+      };
+      return descriptions[example] || 'a custom pattern';
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentExample = tab.dataset.example;
+        updateDisplay();
+      });
+    });
+
+    // Markdown editing
+    document.getElementById('markdown-input').addEventListener('input', () => {
+      updatePrompt();
+    });
+
+    // Copy button
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      const prompt = document.getElementById('prompt-output').textContent;
+      navigator.clipboard.writeText(prompt).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy Prompt';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+    // Wait for Prism.js to load before initial display
+    window.addEventListener('load', () => {
+      updateDisplay();
+    });
+  </script>
+
+  <!-- Prism.js for syntax highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sparql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-turtle.min.js"></script>
+</body>
+</html>
