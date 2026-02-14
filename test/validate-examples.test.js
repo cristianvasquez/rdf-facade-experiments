@@ -50,9 +50,9 @@ describe('Example Validation (Snapshot-based)', () => {
         )
       })
 
-      it('should match semantic RDF snapshot', async () => {
+      it('should match result RDF snapshot', async () => {
         const examplePath = `playground/examples/${exampleName}/example.md`
-        const snapshotPath = `test/snapshots/${exampleName}/semantic.ttl`
+        const snapshotPath = `test/snapshots/${exampleName}/result.ttl`
 
         const result = await processExample(examplePath, {
           executeConstruct: true,
@@ -83,7 +83,7 @@ describe('Example Validation (Snapshot-based)', () => {
 
         assert.ok(
           comparison.match,
-          `Semantic RDF does not match snapshot. Run with UPDATE_SNAPSHOTS=true to update.`
+          `Result RDF does not match snapshot. Run with UPDATE_SNAPSHOTS=true to update.`
         )
       })
     })
