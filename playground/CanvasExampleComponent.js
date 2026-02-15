@@ -55,7 +55,7 @@ export class CanvasExampleComponent {
   renderMarkdownNode () {
     const { left, top } = nodePositions.markdown
     return `
-      <div class="canvas-node markdown-node" data-node-id="node-1" style="left: ${left}px; top: ${top}px;">
+      <div class="canvas-node markdown-node" data-node-id="node-1" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px);">
         <div class="node-header">
           <span class="node-title">Markdown Input</span>
           <span class="node-badge">editable</span>
@@ -76,7 +76,7 @@ export class CanvasExampleComponent {
     const { left, top } = nodePositions.facade
 
     return `
-      <div class="canvas-node facade-node" data-node-id="node-2" style="left: ${left}px; top: ${top}px;">
+      <div class="canvas-node facade-node" data-node-id="node-2" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px);">
         <div class="node-header">
           <span class="node-title">Facade RDF (${facadeType})</span>
           <span class="node-badge">intermediate</span>
@@ -100,7 +100,7 @@ export class CanvasExampleComponent {
   renderSparqlNode () {
     const { left, top } = nodePositions.sparql
     return `
-      <div class="canvas-node sparql-node" data-node-id="node-3" style="left: ${left}px; top: ${top}px;">
+      <div class="canvas-node sparql-node" data-node-id="node-3" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px);">
         <div class="node-header">
           <span class="node-title">SPARQL CONSTRUCT</span>
           <span class="node-badge">editable</span>
@@ -116,7 +116,7 @@ export class CanvasExampleComponent {
   renderSemanticNode () {
     const { left, top } = nodePositions.semantic
     return `
-      <div class="canvas-node semantic-node" data-node-id="node-4" style="left: ${left}px; top: ${top}px;">
+      <div class="canvas-node semantic-node" data-node-id="node-4" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px);">
         <div class="node-header">
           <span class="node-title">Target RDF</span>
           <span class="node-badge">output</span>
@@ -132,7 +132,7 @@ export class CanvasExampleComponent {
   renderInfoNode () {
     const { left, top, width, height } = nodePositions.info
     return `
-      <div class="canvas-node info-node" data-node-id="node-info" style="left: ${left}px; top: ${top}px; width: ${width}px; height: ${height};">
+      <div class="canvas-node info-node" data-node-id="node-info" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px); width: ${width}px; height: ${height};">
         <div class="node-header">
           <span class="node-title">Markdown to RDF techniques</span>
           <button class="collapse-btn" data-node="node-info">▼</button>
@@ -214,24 +214,34 @@ export class CanvasExampleComponent {
         })
         .resizable({
           edges: { left: false, right: true, bottom: true, top: false },
+          margin: 30,
+          modifiers: [
+            interact.modifiers.restrictSize({
+              min: { width: 250, height: 200 }
+            })
+          ],
           listeners: {
+            start: (event) => {
+              const target = event.target
+              // Store initial size
+              if (!target.style.width || target.style.width === '') {
+                target.style.width = '450px'
+              }
+              if (!target.style.height || target.style.height === '') {
+                target.style.height = '550px'
+              }
+            },
             move: (event) => {
               const target = event.target
-              let x = parseFloat(target.getAttribute('data-x')) || 0
-              let y = parseFloat(target.getAttribute('data-y')) || 0
 
+              // Update size
               target.style.width = `${event.rect.width}px`
               target.style.height = `${event.rect.height}px`
 
-              // Handle translation during resize
-              x += event.deltaRect.left
-              y += event.deltaRect.top
-
-              target.style.transform = `translate(${x}px, ${y}px)`
-              target.setAttribute('data-x', x)
-              target.setAttribute('data-y', y)
-
               this.canvasConnections.updateArrows()
+            },
+            end: () => {
+              this.saveNodePositions()
             }
           }
         })
@@ -514,11 +524,15 @@ export class CanvasExampleComponent {
       // Removed 'contain' to allow free zoom/pan
     })
 
-    // Listen to pan/zoom events to update connections
+    // Load saved pan/zoom state
+    this.loadPanZoomState()
+
+    // Listen to pan/zoom events to update connections and save state
     workspace.addEventListener('panzoomchange', () => {
       if (this.canvasConnections) {
         this.canvasConnections.updateArrows()
       }
+      this.savePanZoomState()
     })
 
     // Enable mouse wheel zoom
@@ -527,6 +541,44 @@ export class CanvasExampleComponent {
         this.panzoomInstance.zoomWithWheel(event)
       }
     })
+  }
+
+  loadPanZoomState () {
+    if (!useLocalStorage || !this.panzoomInstance) return
+
+    try {
+      const saved = localStorage.getItem('playground-panzoom-state')
+      if (!saved) return
+
+      const state = JSON.parse(saved)
+      if (state.scale) {
+        this.panzoomInstance.zoom(state.scale, { animate: false })
+      }
+      if (state.x !== undefined && state.y !== undefined) {
+        this.panzoomInstance.pan(state.x, state.y, { animate: false })
+      }
+    } catch (error) {
+      console.warn('Failed to load pan/zoom state:', error)
+    }
+  }
+
+  savePanZoomState () {
+    if (!useLocalStorage || !this.panzoomInstance) return
+
+    try {
+      const pan = this.panzoomInstance.getPan()
+      const scale = this.panzoomInstance.getScale()
+
+      const state = {
+        x: pan.x,
+        y: pan.y,
+        scale: scale
+      }
+
+      localStorage.setItem('playground-panzoom-state', JSON.stringify(state))
+    } catch (error) {
+      console.warn('Failed to save pan/zoom state:', error)
+    }
   }
 
   destroy () {

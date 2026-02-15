@@ -428,8 +428,11 @@ header {
 }
 
 .canvas-node.collapsed {
-  resize: none;
   overflow: visible;
+}
+
+.canvas-node.collapsed::after {
+  display: none;
 }
 
 .canvas-node.collapsed .node-header {
@@ -525,19 +528,40 @@ header {
   color: #000;
 }
 
-/* Resize handle styling */
+/* Resize handle styling - large visible area */
 .canvas-node::after {
   content: '';
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, transparent 50%, #999 50%);
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.1) 50%);
   cursor: nwse-resize;
-  pointer-events: none;
+  pointer-events: auto;
+  z-index: 100;
+  border-bottom-right-radius: 8px;
 }
 
 .canvas-node:hover::after {
-  background: linear-gradient(135deg, transparent 50%, #666 50%);
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.2) 50%);
+}
+
+/* Visual grip dots for resize handle */
+.canvas-node::before {
+  content: '⋮⋮';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 16px;
+  color: rgba(0,0,0,0.3);
+  pointer-events: none;
+  z-index: 101;
+  line-height: 10px;
+  letter-spacing: -2px;
+  transform: rotate(-45deg);
+}
+
+.canvas-node:hover::before {
+  color: rgba(0,0,0,0.5);
 }
