@@ -25,4 +25,4 @@ export const nodePositions = {
 }
 
 // Feature flags
-export const useLocalStorage = true
+export const useLocalStorage = false

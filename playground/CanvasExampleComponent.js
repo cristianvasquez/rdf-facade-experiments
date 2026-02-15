@@ -7,7 +7,7 @@ import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
 import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
 import { nodePositions, useLocalStorage } from './config.js'
 import Panzoom from '@panzoom/panzoom'
-import interact from 'interactjs'
+import Moveable from 'moveable'
 
 // LeaderLine is loaded via CDN in index.html and available as a global
 /* global LeaderLine */
@@ -28,8 +28,13 @@ export class CanvasExampleComponent {
     this.isProcessing = false
     this.editTimeout = null
     this.leaderLines = []
+    this.moveable = null
+    this.selectedNode = null
     this.maxZIndex = 1
     this.panzoomInstance = null
+    this.isDragging = false
+    this.dragStartPos = { x: 0, y: 0 }
+    this.dragNodeStartPos = { x: 0, y: 0 }
 
     this.render()
     this.initializeNodes()
@@ -184,70 +189,65 @@ export class CanvasExampleComponent {
       { from: 'node-3', to: 'node-4' },
     ]
 
-    // Make nodes draggable and resizable with Interact.js
+    // Set initial sizes for nodes
     const nodes = this.container.querySelectorAll('.canvas-node')
     nodes.forEach(node => {
-      interact(node)
-        .draggable({
-          allowFrom: '.node-header',
-          ignoreFrom: '.collapse-btn, .preserve-order, .example-selector',
-          listeners: {
-            move: (event) => {
-              const target = event.target
-              const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-              const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+      if (!node.style.width || node.style.width === '') {
+        node.style.width = '450px'
+      }
+      if (!node.style.height || node.style.height === '') {
+        node.style.height = '550px'
+      }
+    })
 
-              target.style.transform = `translate(${x}px, ${y}px)`
-              target.setAttribute('data-x', x)
-              target.setAttribute('data-y', y)
+    // Create a single Moveable instance (for resize only)
+    this.moveable = new Moveable(this.container, {
+      target: null,
+      draggable: false,
+      resizable: true,
+      throttleResize: 0,
+      edge: ['e', 's', 'se'],
+      origin: false,
+      keepRatio: false
+    })
 
-              this.updateLeaderLines()
-            },
-            end: () => {
-              this.saveNodePositions()
-            }
-          }
-        })
-        .resizable({
-          edges: { left: false, right: true, bottom: true, top: false },
-          margin: 30,
-          modifiers: [
-            interact.modifiers.restrictSize({
-              min: { width: 250, height: 200 }
-            })
-          ],
-          listeners: {
-            start: (event) => {
-              const target = event.target
-              // Store initial size
-              if (!target.style.width || target.style.width === '') {
-                target.style.width = '450px'
-              }
-              if (!target.style.height || target.style.height === '') {
-                target.style.height = '550px'
-              }
-            },
-            move: (event) => {
-              const target = event.target
+    // Handle resize
+    this.moveable.on('resize', ({ target, width, height, drag }) => {
+      target.style.width = `${width}px`
+      target.style.height = `${height}px`
+      target.style.transform = drag.transform
+      this.updateLeaderLines()
+    })
 
-              // Update size
-              target.style.width = `${event.rect.width}px`
-              target.style.height = `${event.rect.height}px`
+    this.moveable.on('resizeEnd', () => {
+      this.saveNodePositions()
+    })
 
-              this.updateLeaderLines()
-            },
-            end: () => {
-              this.saveNodePositions()
-            }
-          }
-        })
-
-      // Bring node to front on mousedown
+    // Manual drag handling for immediate response
+    nodes.forEach(node => {
       const header = node.querySelector('.node-header')
       if (header) {
-        header.addEventListener('mousedown', () => {
-          this.bringNodeToFront(node)
+        header.addEventListener('mousedown', (e) => {
+          // Don't activate if clicking on controls
+          if (e.target.closest('.collapse-btn, .preserve-order, .example-selector')) {
+            return
+          }
+
+          this.startDrag(e, node)
+          e.preventDefault()
+          e.stopPropagation()
         })
+      }
+    })
+
+    // Global mouse handlers for dragging
+    document.addEventListener('mousemove', (e) => this.onDragMove(e))
+    document.addEventListener('mouseup', () => this.onDragEnd())
+
+    // Click outside nodes to deselect
+    this.container.addEventListener('mousedown', (e) => {
+      if (!e.target.closest('.canvas-node') && !e.target.closest('.moveable-control')) {
+        this.deselectNode()
       }
     })
 
@@ -259,7 +259,7 @@ export class CanvasExampleComponent {
     // Collapse buttons
     this.container.querySelectorAll('.collapse-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation() // Prevent dragging
+        e.stopPropagation()
         const nodeId = btn.dataset.node
         const node = this.container.querySelector(`[data-node-id="${nodeId}"]`)
 
@@ -294,6 +294,71 @@ export class CanvasExampleComponent {
     nodes.forEach(node => {
       this.resizeObserver.observe(node)
     })
+  }
+
+  startDrag(e, node) {
+    this.isDragging = true
+    this.selectedNode = node
+    this.bringNodeToFront(node)
+
+    // Get current transform or initialize
+    const transform = node.style.transform
+    let currentX = 0, currentY = 0
+    if (transform && transform.includes('translate')) {
+      const match = transform.match(/translate\(([^,]+)px,\s*([^)]+)px\)/)
+      if (match) {
+        currentX = parseFloat(match[1])
+        currentY = parseFloat(match[2])
+      }
+    }
+
+    this.dragStartPos = { x: e.clientX, y: e.clientY }
+    this.dragNodeStartPos = { x: currentX, y: currentY }
+
+    // Show Moveable controls
+    this.moveable.target = node
+    this.moveable.updateRect()
+  }
+
+  onDragMove(e) {
+    if (!this.isDragging || !this.selectedNode) return
+
+    const dx = e.clientX - this.dragStartPos.x
+    const dy = e.clientY - this.dragStartPos.y
+
+    // Get the current scale from panzoom
+    const scale = this.panzoomInstance ? this.panzoomInstance.getScale() : 1
+
+    const newX = this.dragNodeStartPos.x + dx / scale
+    const newY = this.dragNodeStartPos.y + dy / scale
+
+    this.selectedNode.style.transform = `translate(${newX}px, ${newY}px)`
+
+    this.updateLeaderLines()
+
+    // Update Moveable position
+    if (this.moveable) {
+      this.moveable.updateRect()
+    }
+  }
+
+  onDragEnd() {
+    if (this.isDragging) {
+      this.isDragging = false
+      this.saveNodePositions()
+    }
+  }
+
+  selectNode(node) {
+    this.selectedNode = node
+    this.bringNodeToFront(node)
+    this.moveable.target = node
+    this.moveable.updateRect()
+  }
+
+  deselectNode() {
+    this.selectedNode = null
+    this.moveable.target = null
   }
 
   initializeLeaderLines(connections) {
@@ -492,13 +557,9 @@ export class CanvasExampleComponent {
       nodes.forEach(node => {
         const nodeId = node.dataset.nodeId
         if (positions[nodeId]) {
-          const x = parseFloat(positions[nodeId].x) || 0
-          const y = parseFloat(positions[nodeId].y) || 0
-
-          node.setAttribute('data-x', x)
-          node.setAttribute('data-y', y)
-          node.style.transform = `translate(${x}px, ${y}px)`
-
+          if (positions[nodeId].transform) {
+            node.style.transform = positions[nodeId].transform
+          }
           if (positions[nodeId].width) node.style.width = positions[nodeId].width
           if (positions[nodeId].height) node.style.height = positions[nodeId].height
           if (positions[nodeId].zIndex) {
@@ -522,8 +583,7 @@ export class CanvasExampleComponent {
       nodes.forEach(node => {
         const nodeId = node.dataset.nodeId
         positions[nodeId] = {
-          x: node.getAttribute('data-x') || '0',
-          y: node.getAttribute('data-y') || '0',
+          transform: node.style.transform || '',
           width: node.style.width,
           height: node.style.height,
           zIndex: node.style.zIndex || '1'
@@ -563,12 +623,19 @@ export class CanvasExampleComponent {
     // Listen to pan/zoom events to update connections and save state
     workspace.addEventListener('panzoomchange', () => {
       this.updateLeaderLines()
+      // Update Moveable control box when panning/zooming
+      if (this.moveable && this.selectedNode) {
+        this.moveable.updateRect()
+      }
       this.savePanZoomState()
     })
 
-    // Enable mouse wheel zoom
+    // Enable mouse wheel zoom (but not when over node content)
     canvasContainer.addEventListener('wheel', (event) => {
-      if (!event.ctrlKey && !event.metaKey) {
+      // Check if mouse is over a node's scrollable content
+      const isOverNodeContent = event.target.closest('.node-content, .markdown-input, rdf-editor, sparql-editor')
+
+      if (!isOverNodeContent && !event.ctrlKey && !event.metaKey) {
         this.panzoomInstance.zoomWithWheel(event)
       }
     })
@@ -613,11 +680,15 @@ export class CanvasExampleComponent {
   }
 
   destroy () {
-    // Clean up Interact.js
-    const nodes = this.container.querySelectorAll('.canvas-node')
-    nodes.forEach(node => {
-      interact(node).unset()
-    })
+    // Clean up global drag listeners
+    document.removeEventListener('mousemove', this.onDragMove)
+    document.removeEventListener('mouseup', this.onDragEnd)
+
+    // Clean up Moveable instance
+    if (this.moveable) {
+      this.moveable.destroy()
+      this.moveable = null
+    }
 
     // Clean up LeaderLine connections
     this.leaderLines.forEach(line => line.remove())

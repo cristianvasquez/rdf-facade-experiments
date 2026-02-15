@@ -17,7 +17,7 @@
     "@panzoom/panzoom": "^4.6.1",
     "@rdfjs/data-model": "^2.1.1",
     "@rdfjs/serializer-turtle": "^1.1.5",
-    "interactjs": "^1.10.27",
+    "moveable": "^0.53.0",
     "n3": "^1.17.0",
     "prismjs": "^1.30.0",
     "rdf-elements": "^0.1.4",
