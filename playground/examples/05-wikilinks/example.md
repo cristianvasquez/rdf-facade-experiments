@@ -1,89 +1,109 @@
 ---
-title: Links
-description: Using markdown links [text](urn:entity) to reference entities
+title: Claude Skill Definition
+description: Parse Claude skill metadata from markdown with links
 facade: facade-remark
 construct: |
   PREFIX rmk: <http://example.org/remark#>
   PREFIX fxr: <http://example.org/facade-remark#>
   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-  PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-  PREFIX : <http://example.org/>
+  PREFIX skill: <http://example.org/skill#>
+  PREFIX dc: <http://purl.org/dc/terms/>
 
   CONSTRUCT {
-    ?team a :Team ;
-      :name ?teamName ;
-      :hasMember ?member .
+    ?skillIri a skill:Skill ;
+      dc:title ?skillName ;
+      dc:description ?description ;
+      skill:triggerPattern ?pattern ;
+      skill:requiresTool ?tool ;
+      skill:hasStep ?step .
 
-    ?subject a foaf:Person ;
-      foaf:name ?subjectName ;
-      ?predicate ?object .
+    ?step a skill:Step ;
+      skill:stepNumber ?stepNum ;
+      skill:action ?action .
   }
   WHERE {
     ?root a rmk:root .
 
-    # Team heading
-    ?teamHeading a rmk:heading ;
-      fxr:depth "1" ;
-      fxr:children [ a rmk:text ; fxr:value ?teamName ] .
-
-    # Find relationship statements (paragraphs with links and text)
-    {
-      ?para a rmk:paragraph .
-
-      # Pattern: [Subject](urn:...) relationship [Object](urn:...)
-      ?para fxr:children ?link1, ?textNode, ?link2 .
-
-      ?link1 a rmk:link ;
-        fxr:url ?subjectUrl ;
-        fxr:children [ a rmk:text ; fxr:value ?subjectName ] .
-
-      ?textNode a rmk:text ;
-        fxr:value ?relationshipRaw .
-
-      ?link2 a rmk:link ;
-        fxr:url ?objectUrl ;
-        fxr:children [ a rmk:text ; fxr:value ?objectName ] .
-
-      # Extract relationship name (trim spaces)
-      BIND(REPLACE(REPLACE(?relationshipRaw, "^ ", ""), " $", "") AS ?relationshipName)
-
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
-      BIND(IRI(?subjectUrl) AS ?subject)
-      BIND(IRI(?objectUrl) AS ?object)
-
-      # Map relationship to predicate
-      BIND(IF(?relationshipName = "knows", foaf:knows,
-           IF(?relationshipName = "likes", :likes,
-              IRI(CONCAT(str(:), ?relationshipName)))) AS ?predicate)
+    # Extract skill name from H1
+    OPTIONAL {
+      ?h1 a rmk:heading ;
+        fxr:depth "1" ;
+        fxr:children [ a rmk:text ; fxr:value ?skillName ] .
     }
-    UNION
-    # Members list (paragraphs starting with "Members:")
-    {
-      ?membersPara a rmk:paragraph ;
-        fxr:children ?membersText .
 
-      ?membersText a rmk:text ;
-        fxr:value ?membersPrefix .
+    # Extract description - only the actual description link, not the label
+    OPTIONAL {
+      ?descLink a rmk:link ;
+        fxr:url "meta:description" ;
+        fxr:children [ a rmk:text ; fxr:value ?description ] .
 
-      FILTER(CONTAINS(?membersPrefix, "Members:"))
-
-      # Get links in the same paragraph
-      ?membersPara fxr:children ?memberLink .
-
-      ?memberLink a rmk:link ;
-        fxr:url ?memberUrl ;
-        fxr:children [ a rmk:text ; fxr:value ?memberName ] .
-
-      BIND(IRI(CONCAT("urn:", ENCODE_FOR_URI(?teamName))) AS ?team)
-      BIND(IRI(?memberUrl) AS ?member)
+      # Filter out the "Description:" label link
+      FILTER(?description != "Description:")
     }
+
+    # Extract trigger patterns - list items with trigger: URLs
+    OPTIONAL {
+      ?listItem a rmk:listItem ;
+        fxr:children [ a rmk:paragraph ;
+          fxr:children ?patternLink ] .
+
+      ?patternLink a rmk:link ;
+        fxr:url ?patternUrl ;
+        fxr:children [ a rmk:text ; fxr:value ?pattern ] .
+
+      FILTER(STRSTARTS(str(?patternUrl), "trigger:"))
+    }
+
+    # Extract required tools - links with tool: prefix
+    OPTIONAL {
+      ?toolLink a rmk:link ;
+        fxr:url ?toolUrl ;
+        fxr:children [ a rmk:text ; fxr:value ?tool ] .
+
+      FILTER(STRSTARTS(str(?toolUrl), "tool:"))
+    }
+
+    # Extract steps - list items with step: URLs
+    OPTIONAL {
+      ?stepListItem a rmk:listItem ;
+        fxr:children [ a rmk:paragraph ;
+          fxr:children ?stepLink ] .
+
+      ?stepLink a rmk:link ;
+        fxr:url ?stepUrl ;
+        fxr:children [ a rmk:text ; fxr:value ?action ] .
+
+      FILTER(STRSTARTS(str(?stepUrl), "step:"))
+
+      # Extract step number from URL
+      BIND(REPLACE(str(?stepUrl), "^step:", "") AS ?stepNum)
+      BIND(IRI(CONCAT("urn:step:", ?stepNum)) AS ?step)
+    }
+
+    # Generate skill IRI from name
+    BIND(IF(BOUND(?skillName),
+           IRI(CONCAT("urn:skill:", ENCODE_FOR_URI(?skillName))),
+           <urn:skill:unnamed>) AS ?skillIri)
   }
 ---
 
-# Team Alpha
+# Git Commit Assistant
 
-[Bob](urn:Bob) knows [Alice](urn:Alice)
+[Description:](meta:description) [Automates git commits with semantic messages](meta:description)
 
-[Alice](urn:Alice) likes [Icecream](urn:Icecream)
+## When to use
 
-Members: [Bob](urn:Bob), [Alice](urn:Alice)
+- [User asks to commit changes](trigger:commit-request)
+- [Significant code changes are staged](trigger:staged-changes)
+- [Work on a feature is complete](trigger:feature-complete)
+
+## Required tools
+
+Uses [Bash](tool:Bash) and [Read](tool:Read) to analyze changes.
+
+## Steps
+
+1. [Run git status and git diff](step:1)
+2. [Analyze changes and draft commit message](step:2)
+3. [Stage files and create commit](step:3)
+4. [Verify commit success](step:4)

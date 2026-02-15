@@ -1,8 +1,9 @@
+@prefix ex: <http://example.org/>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
 
 <urn:Alice> a foaf:Person;
-  <http://example.org/likes> <urn:Icecream>;
+  ex:likes <urn:Icecream>;
   foaf:knows <urn:Bob>;
   foaf:name "Alice".
 
@@ -22,11 +23,11 @@
 <urn:Team>
   foaf:knows <urn:Person>.
 
-<urn:Team%20Alpha> a <http://example.org/Team>;
-  <http://example.org/hasMember>
+<urn:Team%20Alpha> a ex:Team;
+  ex:hasMember
     <urn:Alice>,
     <urn:Bob>;
-  <http://example.org/name> "Team Alpha";
+  ex:name "Team Alpha";
   foaf:knows
     <urn:Alice>,
     <urn:Bob>.

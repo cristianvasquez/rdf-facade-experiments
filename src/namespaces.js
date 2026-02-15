@@ -14,7 +14,7 @@ const ns = {
   fxr: rdf.namespace('http://example.org/facade-remark#'),
   rmk: rdf.namespace('http://example.org/remark#'),
 
-  ex: rdf.namespace('http://http://example.org/'),
+  ex: rdf.namespace('http://example.org/'),
   foaf: rdf.namespace('http://xmlns.com/foaf/0.1/'),
 
 }
