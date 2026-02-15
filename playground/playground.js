@@ -54,25 +54,6 @@ const examples = Object.entries(exampleFiles)
 let currentExample = null
 let currentComponent = null
 
-// Render menu
-function renderMenu() {
-  const menu = document.getElementById('example-menu')
-  menu.innerHTML = examples.map(ex => `
-    <button class="menu-item" data-example-id="${ex.id}">
-      <span class="menu-item-title">${ex.title}</span>
-      ${ex.description ? `<span class="menu-item-description">${ex.description}</span>` : ''}
-    </button>
-  `).join('')
-
-  // Attach click handlers
-  menu.querySelectorAll('.menu-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const exampleId = item.dataset.exampleId
-      loadExample(exampleId)
-    })
-  })
-}
-
 // Load an example
 async function loadExample(exampleId) {
   const example = examples.find(ex => ex.id === exampleId)
