@@ -5,10 +5,12 @@ import { ns } from '../src/namespaces.js'
 import 'rdf-elements/rdf-elements.js'
 import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
 import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
-import { CanvasConnections } from './CanvasConnections.js'
 import { nodePositions, useLocalStorage } from './config.js'
 import Panzoom from '@panzoom/panzoom'
 import interact from 'interactjs'
+
+// LeaderLine is loaded via CDN in index.html and available as a global
+/* global LeaderLine */
 
 // Reusable QueryEngine instance
 const queryEngine = new QueryEngine()
@@ -25,7 +27,7 @@ export class CanvasExampleComponent {
     this.currentSparql = example.sparql
     this.isProcessing = false
     this.editTimeout = null
-    this.canvasConnections = null
+    this.leaderLines = []
     this.maxZIndex = 1
     this.panzoomInstance = null
 
@@ -160,7 +162,6 @@ export class CanvasExampleComponent {
   render () {
     this.container.innerHTML = `
       <div class="canvas-container">
-        <svg class="canvas-connections"></svg>
         <div class="canvas-workspace">
           ${this.renderInfoNode()}
           ${this.renderMarkdownNode()}
@@ -173,7 +174,8 @@ export class CanvasExampleComponent {
   }
 
   initializeNodes () {
-    const svg = this.container.querySelector('.canvas-connections')
+    // Load saved positions from localStorage
+    this.loadNodePositions()
 
     // Define connections
     const connections = [
@@ -181,12 +183,6 @@ export class CanvasExampleComponent {
       { from: 'node-2', to: 'node-3' },
       { from: 'node-3', to: 'node-4' },
     ]
-
-    // Initialize arrow connections
-    this.canvasConnections = new CanvasConnections(svg, connections)
-
-    // Load saved positions from localStorage
-    this.loadNodePositions()
 
     // Make nodes draggable and resizable with Interact.js
     const nodes = this.container.querySelectorAll('.canvas-node')
@@ -205,7 +201,7 @@ export class CanvasExampleComponent {
               target.setAttribute('data-x', x)
               target.setAttribute('data-y', y)
 
-              this.canvasConnections.updateArrows()
+              this.updateLeaderLines()
             },
             end: () => {
               this.saveNodePositions()
@@ -238,7 +234,7 @@ export class CanvasExampleComponent {
               target.style.width = `${event.rect.width}px`
               target.style.height = `${event.rect.height}px`
 
-              this.canvasConnections.updateArrows()
+              this.updateLeaderLines()
             },
             end: () => {
               this.saveNodePositions()
@@ -255,9 +251,9 @@ export class CanvasExampleComponent {
       }
     })
 
-    // Initial arrow draw
+    // Initialize LeaderLine connections after nodes are in DOM
     requestAnimationFrame(() => {
-      this.canvasConnections.updateArrows()
+      this.initializeLeaderLines(connections)
     })
 
     // Collapse buttons
@@ -284,21 +280,58 @@ export class CanvasExampleComponent {
 
         // Update arrows after collapse animation
         setTimeout(() => {
-          this.canvasConnections.updateArrows()
+          this.updateLeaderLines()
         }, 100)
       })
     })
 
     // Add ResizeObserver to update arrows when nodes are resized
     this.resizeObserver = new ResizeObserver(() => {
-      if (this.canvasConnections) {
-        this.canvasConnections.updateArrows()
-      }
+      this.updateLeaderLines()
     })
 
     // Observe all nodes for resize
     nodes.forEach(node => {
       this.resizeObserver.observe(node)
+    })
+  }
+
+  initializeLeaderLines(connections) {
+    // Clean up existing lines
+    this.leaderLines.forEach(line => line.remove())
+    this.leaderLines = []
+
+    // Create LeaderLine for each connection
+    connections.forEach(conn => {
+      const fromNode = this.container.querySelector(`[data-node-id="${conn.from}"]`)
+      const toNode = this.container.querySelector(`[data-node-id="${conn.to}"]`)
+
+      if (fromNode && toNode) {
+        const line = new LeaderLine(
+          fromNode,
+          toNode,
+          {
+            color: '#999',
+            size: 2,
+            path: 'fluid',
+            startPlug: 'behind',
+            endPlug: 'arrow2',
+            startSocket: 'right',
+            endSocket: 'left',
+            dash: { animation: true }
+          }
+        )
+        this.leaderLines.push(line)
+      }
+    })
+  }
+
+  updateLeaderLines() {
+    // LeaderLine automatically updates positions, but we can force update
+    this.leaderLines.forEach(line => {
+      if (line && line.position) {
+        line.position()
+      }
     })
   }
 
@@ -529,9 +562,7 @@ export class CanvasExampleComponent {
 
     // Listen to pan/zoom events to update connections and save state
     workspace.addEventListener('panzoomchange', () => {
-      if (this.canvasConnections) {
-        this.canvasConnections.updateArrows()
-      }
+      this.updateLeaderLines()
       this.savePanZoomState()
     })
 
@@ -588,11 +619,9 @@ export class CanvasExampleComponent {
       interact(node).unset()
     })
 
-    // Clean up canvas connections
-    if (this.canvasConnections) {
-      this.canvasConnections.destroy()
-      this.canvasConnections = null
-    }
+    // Clean up LeaderLine connections
+    this.leaderLines.forEach(line => line.remove())
+    this.leaderLines = []
 
     // Clean up resize observer
     if (this.resizeObserver) {
