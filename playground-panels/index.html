@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown to RDF Playground</title>
+  <link rel="stylesheet" href="/playground.css">
+</head>
+<body>
+  <div class="playground-container">
+    <header>
+      <h1>🔄 Markdown to RDF Playground</h1>
+      <p class="intro">
+        <strong>Literate RDF authoring</strong> through markdown: author semantic graphs using familiar markdown syntax.
+        The <strong>facade</strong> is a general intermediate representation of the markdown structure.
+        The <strong>SPARQL CONSTRUCT</strong> mapping makes the semantics explicit, transforming the facade into domain RDF.
+        Same semantic meaning, different syntactic styles—you choose what fits your workflow.
+      </p>
+    </header>
+
+    <!-- Menu View -->
+    <div id="menu-view" class="menu-view">
+      <h2>Select an Example</h2>
+      <div id="example-menu" class="example-menu"></div>
+    </div>
+
+    <!-- Example View -->
+    <div id="example-view" class="example-view" style="display: none;">
+      <div id="example-container"></div>
+    </div>
+  </div>
+  <script type="module" src="/playground.js"></script>
+</body>
+</html>

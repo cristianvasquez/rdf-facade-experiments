@@ -1,5 +1,5 @@
 import YAML from 'yaml'
-import { CanvasExampleComponent } from './CanvasExampleComponent.js'
+import { ExampleComponent } from './ExampleComponent.js'
 
 // Parse frontmatter from markdown using proper YAML parser
 function parseFrontmatter(markdown) {
@@ -80,19 +80,20 @@ async function loadExample(exampleId) {
 
   currentExample = example
 
+  // Show example container, hide menu
+  document.getElementById('menu-view').style.display = 'none'
+  document.getElementById('example-view').style.display = 'block'
+
   // Create component with example selector
   const container = document.getElementById('example-container')
-
-  // Clean up previous component if exists
-  if (currentComponent && currentComponent.destroy) {
-    currentComponent.destroy()
-  }
-
-  currentComponent = new CanvasExampleComponent(example, container, examples, loadExample)
+  currentComponent = new ExampleComponent(example, container, examples, loadExample)
   await currentComponent.setMarkdown(example.markdown)
 }
 
-// Initialize - load first example by default
+// Initialize
+renderMenu()
+
+// Load first example by default (skip menu)
 if (examples.length > 0) {
   loadExample(examples[0].id)
 }
