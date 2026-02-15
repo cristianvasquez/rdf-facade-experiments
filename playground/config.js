@@ -8,7 +8,7 @@ export const nodePositions = {
   },
   markdown: {
     left: 50,
-    top: 300
+    top: 300,
   },
   facade: {
     left: 550,
@@ -25,4 +25,4 @@ export const nodePositions = {
 }
 
 // Feature flags
-export const useLocalStorage = false
+export const useLocalStorage = true

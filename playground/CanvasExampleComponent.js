@@ -6,8 +6,9 @@ import 'rdf-elements/rdf-elements.js'
 import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
 import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
 import { CanvasConnections } from './CanvasConnections.js'
-import { DraggableNode } from './DraggableNode.js'
 import { nodePositions, useLocalStorage } from './config.js'
+import Panzoom from '@panzoom/panzoom'
+import interact from 'interactjs'
 
 // Reusable QueryEngine instance
 const queryEngine = new QueryEngine()
@@ -24,13 +25,14 @@ export class CanvasExampleComponent {
     this.currentSparql = example.sparql
     this.isProcessing = false
     this.editTimeout = null
-    this.draggableNodes = []
     this.canvasConnections = null
     this.maxZIndex = 1
+    this.panzoomInstance = null
 
     this.render()
     this.initializeNodes()
     this.attachEventListeners()
+    this.initializePanZoom()
   }
 
   renderExampleOptions () {
@@ -186,14 +188,53 @@ export class CanvasExampleComponent {
     // Load saved positions from localStorage
     this.loadNodePositions()
 
-    // Make nodes draggable
+    // Make nodes draggable and resizable with Interact.js
     const nodes = this.container.querySelectorAll('.canvas-node')
     nodes.forEach(node => {
-      const draggable = new DraggableNode(node, () => {
-        this.canvasConnections.updateArrows()
-        this.saveNodePositions()
-      })
-      this.draggableNodes.push(draggable)
+      interact(node)
+        .draggable({
+          allowFrom: '.node-header',
+          ignoreFrom: '.collapse-btn, .preserve-order, .example-selector',
+          listeners: {
+            move: (event) => {
+              const target = event.target
+              const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+              const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+              target.style.transform = `translate(${x}px, ${y}px)`
+              target.setAttribute('data-x', x)
+              target.setAttribute('data-y', y)
+
+              this.canvasConnections.updateArrows()
+            },
+            end: () => {
+              this.saveNodePositions()
+            }
+          }
+        })
+        .resizable({
+          edges: { left: false, right: true, bottom: true, top: false },
+          listeners: {
+            move: (event) => {
+              const target = event.target
+              let x = parseFloat(target.getAttribute('data-x')) || 0
+              let y = parseFloat(target.getAttribute('data-y')) || 0
+
+              target.style.width = `${event.rect.width}px`
+              target.style.height = `${event.rect.height}px`
+
+              // Handle translation during resize
+              x += event.deltaRect.left
+              y += event.deltaRect.top
+
+              target.style.transform = `translate(${x}px, ${y}px)`
+              target.setAttribute('data-x', x)
+              target.setAttribute('data-y', y)
+
+              this.canvasConnections.updateArrows()
+            }
+          }
+        })
 
       // Bring node to front on mousedown
       const header = node.querySelector('.node-header')
@@ -205,7 +246,6 @@ export class CanvasExampleComponent {
     })
 
     // Initial arrow draw
-    // Need to wait for layout to settle
     requestAnimationFrame(() => {
       this.canvasConnections.updateArrows()
     })
@@ -409,12 +449,18 @@ export class CanvasExampleComponent {
       nodes.forEach(node => {
         const nodeId = node.dataset.nodeId
         if (positions[nodeId]) {
-          node.style.left = positions[nodeId].left
-          node.style.top = positions[nodeId].top
+          const x = parseFloat(positions[nodeId].x) || 0
+          const y = parseFloat(positions[nodeId].y) || 0
+
+          node.setAttribute('data-x', x)
+          node.setAttribute('data-y', y)
+          node.style.transform = `translate(${x}px, ${y}px)`
+
+          if (positions[nodeId].width) node.style.width = positions[nodeId].width
+          if (positions[nodeId].height) node.style.height = positions[nodeId].height
           if (positions[nodeId].zIndex) {
             node.style.zIndex = positions[nodeId].zIndex
-            this.maxZIndex = Math.max(this.maxZIndex,
-              parseInt(positions[nodeId].zIndex))
+            this.maxZIndex = Math.max(this.maxZIndex, parseInt(positions[nodeId].zIndex))
           }
         }
       })
@@ -433,14 +479,15 @@ export class CanvasExampleComponent {
       nodes.forEach(node => {
         const nodeId = node.dataset.nodeId
         positions[nodeId] = {
-          left: node.style.left,
-          top: node.style.top,
-          zIndex: node.style.zIndex || '1',
+          x: node.getAttribute('data-x') || '0',
+          y: node.getAttribute('data-y') || '0',
+          width: node.style.width,
+          height: node.style.height,
+          zIndex: node.style.zIndex || '1'
         }
       })
 
-      localStorage.setItem('playground-node-positions',
-        JSON.stringify(positions))
+      localStorage.setItem('playground-node-positions', JSON.stringify(positions))
     } catch (error) {
       console.warn('Failed to save node positions:', error)
     }
@@ -452,10 +499,42 @@ export class CanvasExampleComponent {
     this.saveNodePositions()
   }
 
+  initializePanZoom () {
+    const workspace = this.container.querySelector('.canvas-workspace')
+    const canvasContainer = this.container.querySelector('.canvas-container')
+    if (!workspace || !canvasContainer) return
+
+    // Initialize panzoom on the workspace
+    this.panzoomInstance = Panzoom(workspace, {
+      maxScale: 5,
+      minScale: 0.05,
+      canvas: true,
+      excludeClass: 'canvas-node', // Don't pan when interacting with nodes
+      cursor: 'grab'
+      // Removed 'contain' to allow free zoom/pan
+    })
+
+    // Listen to pan/zoom events to update connections
+    workspace.addEventListener('panzoomchange', () => {
+      if (this.canvasConnections) {
+        this.canvasConnections.updateArrows()
+      }
+    })
+
+    // Enable mouse wheel zoom
+    canvasContainer.addEventListener('wheel', (event) => {
+      if (!event.ctrlKey && !event.metaKey) {
+        this.panzoomInstance.zoomWithWheel(event)
+      }
+    })
+  }
+
   destroy () {
-    // Clean up draggable nodes
-    this.draggableNodes.forEach(node => node.destroy())
-    this.draggableNodes = []
+    // Clean up Interact.js
+    const nodes = this.container.querySelectorAll('.canvas-node')
+    nodes.forEach(node => {
+      interact(node).unset()
+    })
 
     // Clean up canvas connections
     if (this.canvasConnections) {
@@ -467,6 +546,12 @@ export class CanvasExampleComponent {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
       this.resizeObserver = null
+    }
+
+    // Clean up panzoom
+    if (this.panzoomInstance) {
+      this.panzoomInstance.destroy()
+      this.panzoomInstance = null
     }
   }
 }
