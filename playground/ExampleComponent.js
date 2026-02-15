@@ -4,6 +4,8 @@ import { Store } from 'n3'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
 import Serializer from '@rdfjs/serializer-turtle'
 import { ns } from '../src/namespaces.js'
+import 'rdf-elements/rdf-elements.js'
+import rdf from 'rdf-ext'
 
 // Reusable QueryEngine instance
 const queryEngine = new QueryEngine()
@@ -64,6 +66,7 @@ export class ExampleComponent {
     this.onExampleChange = onExampleChange
     this.facade = example.facade || 'facade-x'
     this.preserveOrder = example.preserveOrder
+    this.currentSparql = example.sparql
     this.layout = 'horizontal'
     this.isProcessing = false
     this.editTimeout = null
@@ -140,7 +143,7 @@ export class ExampleComponent {
             <button class="panel-toggle" data-target="facade">▼</button>
           </div>
           <div class="panel-content">
-            <pre><code class="facade-output language-turtle"></code></pre>
+            <rdf-editor class="facade-output"></rdf-editor>
           </div>
         </div>
 
@@ -148,12 +151,12 @@ export class ExampleComponent {
           <div class="panel-header sparql">
             <span class="panel-title" data-maximize="sparql">
               SPARQL CONSTRUCT
-              <span class="badge">mapping</span>
+              <span class="badge editable">editable</span>
             </span>
             <button class="panel-toggle" data-target="sparql">▼</button>
           </div>
           <div class="panel-content">
-            <pre><code class="sparql-query"></code></pre>
+            <sparql-editor class="sparql-query"></sparql-editor>
           </div>
         </div>
 
@@ -166,7 +169,7 @@ export class ExampleComponent {
             <button class="panel-toggle" data-target="semantic">▼</button>
           </div>
           <div class="panel-content">
-            <pre><code class="semantic-output language-turtle"></code></pre>
+            <rdf-editor class="semantic-output"></rdf-editor>
           </div>
         </div>
       </div>
@@ -176,6 +179,17 @@ export class ExampleComponent {
   attachEventListeners() {
     const workspace = this.container.querySelector('.workspace')
     const exampleSelector = this.container.querySelector('#example-selector')
+
+    // Set mediaType and height on RDF editors
+    const facadeEl = this.container.querySelector('.facade-output')
+    const semanticEl = this.container.querySelector('.semantic-output')
+    const sparqlEl = this.container.querySelector('.sparql-query')
+
+    facadeEl.mediaType = 'text/turtle'
+    semanticEl.mediaType = 'text/turtle'
+
+    // Editors will flex to fill available space via CSS
+    // No need to set explicit heights
 
     // Example selector
     if (exampleSelector && this.onExampleChange) {
@@ -202,6 +216,15 @@ export class ExampleComponent {
     this.container.querySelector('.preserve-order').addEventListener('change', (e) => {
       this.preserveOrder = e.target.checked
       this.updateDisplay()
+    })
+
+    // SPARQL editor changes
+    this.container.querySelector('.sparql-query').addEventListener('change', (e) => {
+      if (!e.detail.error) {
+        this.currentSparql = e.detail.value
+        clearTimeout(this.editTimeout)
+        this.editTimeout = setTimeout(() => this.updateDisplay(), 500)
+      }
     })
 
     // Panel toggles
@@ -282,21 +305,40 @@ export class ExampleComponent {
       const facadeEl = this.container.querySelector('.facade-output')
       const semanticEl = this.container.querySelector('.semantic-output')
 
-      sparqlEl.textContent = this.example.sparql
+      // Set SPARQL query value
+      sparqlEl.value = this.currentSparql
 
-      const { facadeTurtle, semanticTurtle } = await processMarkdown(
-        markdown,
-        this.example.sparql,
-        this.getOptions()
-      )
+      const facade = this.facade || 'facade-x'
+      let facadeQuads
 
-      facadeEl.textContent = facadeTurtle
-      semanticEl.textContent = semanticTurtle
+      if (facade === 'facade-remark') {
+        facadeQuads = remarkToRdf(markdown)
+      } else {
+        facadeQuads = await facadeXToRdf(markdown, this.getOptions())
+      }
+
+      // Convert quads to dataset for RdfEditor
+      const facadeDataset = rdf.dataset(facadeQuads)
+      facadeEl.dataset = facadeDataset
+      facadeEl.prefixes = new Map(Object.entries(ns).map(([k, v]) => [k, v()]))
+
+      // Execute CONSTRUCT query
+      const store = new Store(facadeQuads)
+      const result = await queryEngine.queryQuads(this.currentSparql, {
+        sources: [store]
+      })
+
+      const semanticQuads = await result.toArray()
+      const semanticDataset = rdf.dataset(semanticQuads)
+      semanticEl.dataset = semanticDataset
+      semanticEl.prefixes = new Map(Object.entries(ns).map(([k, v]) => [k, v()]))
     } catch (error) {
       console.error('Error updating display:', error)
       const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`
-      this.container.querySelector('.facade-output').textContent = errorMsg
-      this.container.querySelector('.semantic-output').textContent = errorMsg
+      const facadeEl = this.container.querySelector('.facade-output')
+      const semanticEl = this.container.querySelector('.semantic-output')
+      facadeEl.value = errorMsg
+      semanticEl.value = errorMsg
     } finally {
       this.isProcessing = false
     }
