@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 // Node.js built-ins referenced in eyeling's remote-deref paths (never called
 // for pure in-memory reasoning). Mark them external so the browser bundle
@@ -12,6 +13,7 @@ const nodeBuiltins = [
 
 export default defineConfig({
   root: 'playground',
+  plugins: [react()],
   optimizeDeps: {
     include: ['eyeling/eyeling.js'],
     esbuildOptions: {
