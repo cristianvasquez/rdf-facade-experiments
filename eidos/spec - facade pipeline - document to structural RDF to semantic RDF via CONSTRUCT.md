@@ -43,9 +43,11 @@ The CONSTRUCT query travels with the document in its frontmatter, not in a separ
 - Implemented as a Node.js Transform stream; buffers until flush
 
 **Remark Facade** (`remark-facade.js`)
-- Mirrors the remark AST node-for-node, preserving `position` (line/col/offset)
-- Children linked with repeated `fxr:children` predicates (no ordering)
-- Richer type fidelity (all remark node types); better for position-aware downstream queries
+- Heading-scoped tree: heading nodes become containers; all content until the next same-or-higher heading becomes children
+- Children linked with repeated `fxr:children` predicates (no ordering predicate)
+- All remark node types preserved (`rmk:heading`, `rmk:paragraph`, `rmk:code`, etc.)
+- Position attributes (`fxr:line`, `fxr:column`, `fxr:offset`) on every node — sufficient to derive order when needed
+- See [[spec - remark facade - heading-scoped tree with position attributes]]
 
 **Excel Facade** (`excel-facade.js`)
 - Cells addressed spatially: `xls:x` (column), `xls:y` (row)
