@@ -143,7 +143,48 @@ export function astToRdf(ast, options = {}) {
 }
 
 /**
+ * Restructures a flat remark AST into a heading-scoped tree.
+ * Headings become containers: all block content between a heading and
+ * the next heading at the same or higher depth becomes children of that heading.
+ * Inline children of heading nodes (e.g. text "Team Alpha") are preserved.
+ *
+ * @param {Object} ast - The remark root AST node
+ * @returns {Object} New root node with heading-scoped children
+ */
+export function restructureToTree(ast) {
+  const root = { ...ast, children: [] }
+  const stack = [root]
+
+  for (const child of (ast.children || [])) {
+    if (child.type === 'heading') {
+      const depth = child.depth
+      while (stack.length > 1) {
+        const top = stack[stack.length - 1]
+        if (top.type === 'heading' && top.depth >= depth) {
+          stack.pop()
+        } else {
+          break
+        }
+      }
+      const parent = stack[stack.length - 1]
+      const headingNode = { ...child, children: [...(child.children || [])] }
+      if (!parent.children) parent.children = []
+      parent.children.push(headingNode)
+      stack.push(headingNode)
+    } else {
+      const parent = stack[stack.length - 1]
+      if (!parent.children) parent.children = []
+      parent.children.push(child)
+    }
+  }
+
+  return root
+}
+
+/**
  * Converts markdown to RDF using remark parser.
+ * The AST is restructured into a heading-scoped tree before RDF conversion:
+ * headings become parent containers for subsequent block content.
  *
  * @param {string} markdown - The markdown text
  * @param {Object} options - Configuration options
@@ -156,7 +197,8 @@ export function markdownToRdf(markdown, options = {}) {
     .use(remarkGfm)
 
   const ast = processor.parse(markdown)
-  return astToRdf(ast, options)
+  const treeAst = restructureToTree(ast)
+  return astToRdf(treeAst, options)
 }
 
 export { markdownToRdf as default }

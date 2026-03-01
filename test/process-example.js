@@ -1,10 +1,19 @@
 import { readFileSync } from 'fs'
+import { createRequire } from 'node:module'
 import { parse as parseYaml } from 'yaml'
 import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
 import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
-import { Store } from 'n3'
+import { Store, Writer } from 'n3'
 import { printQuads } from '../src/serialize-utils.js'
+
+function quadsToTurtleString(quads) {
+  return new Promise((resolve, reject) => {
+    const writer = new Writer()
+    writer.addQuads(quads)
+    writer.end((err, result) => err ? reject(err) : resolve(result))
+  })
+}
 
 /**
  * Extract frontmatter from markdown
@@ -68,6 +77,17 @@ export async function processExample(filePath, options = {}) {
     console.log(`Total quads: ${facadeQuads.length}\n`)
     await printQuads(facadeQuads)
     console.log()
+  }
+
+  // Check for N3 rules (eyeling)
+  if (frontmatter?.n3rules) {
+    if (verbose) console.log('Running N3 rules via eyeling...')
+    const { reason } = createRequire(import.meta.url)('eyeling')
+    const factsN3 = await quadsToTurtleString(facadeQuads)
+    const output = reason({}, factsN3 + '\n' + frontmatter.n3rules)
+    console.log('\n=== SEMANTIC RDF (N3 RULES OUTPUT) ===')
+    console.log(output)
+    return { facadeQuads, n3rulesOutput: output }
   }
 
   // Check for CONSTRUCT query

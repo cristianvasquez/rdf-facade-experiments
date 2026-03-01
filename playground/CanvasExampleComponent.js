@@ -1,5 +1,6 @@
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
-import { Store } from 'n3'
+import { Store, Writer as N3Writer } from 'n3'
+import eyeling from 'eyeling/eyeling.js'
 import rdf from 'rdf-ext'
 import { ns } from '../src/namespaces.js'
 import 'rdf-elements/rdf-elements.js'
@@ -15,6 +16,14 @@ import Moveable from 'moveable'
 // Reusable QueryEngine instance
 const queryEngine = new QueryEngine()
 
+function quadsToTurtle (quads) {
+  return new Promise((resolve, reject) => {
+    const writer = new N3Writer()
+    writer.addQuads(quads)
+    writer.end((err, result) => err ? reject(err) : resolve(result))
+  })
+}
+
 export class CanvasExampleComponent {
   constructor (
     example, containerElement, allExamples = [], onExampleChange = null) {
@@ -25,6 +34,8 @@ export class CanvasExampleComponent {
     this.facade = example.facade || 'facade-x'
     this.preserveOrder = example.preserveOrder
     this.currentSparql = example.sparql
+    this.currentN3Rules = example.n3rules || ''
+    this.transformMode = this.currentN3Rules ? 'n3rules' : 'sparql'
     this.isProcessing = false
     this.editTimeout = null
     this.leaderLines = []
@@ -104,17 +115,22 @@ export class CanvasExampleComponent {
     `
   }
 
-  renderSparqlNode () {
+  renderTransformNode () {
     const { left, top } = nodePositions.sparql
+    const isN3 = this.transformMode === 'n3rules'
+    const title = isN3 ? 'N3 Rules' : 'SPARQL CONSTRUCT'
+    const content = isN3
+      ? `<textarea class="n3-rules-input" spellcheck="false"></textarea>`
+      : `<sparql-editor class="sparql-query"></sparql-editor>`
     return `
       <div class="canvas-node sparql-node" data-node-id="node-3" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px);">
         <div class="node-header">
-          <span class="node-title">SPARQL CONSTRUCT</span>
-          <span class="node-badge">editable</span>
+          <span class="node-title">${title}</span>
+          <span class="node-badge">${isN3 ? 'eyeling' : 'editable'}</span>
           <button class="collapse-btn" data-node="node-3">▼</button>
         </div>
         <div class="node-content">
-          <sparql-editor class="sparql-query"></sparql-editor>
+          ${content}
         </div>
       </div>
     `
@@ -147,8 +163,9 @@ export class CanvasExampleComponent {
         <div class="node-content" style="padding: 12px;">
           <p class="intro-text">
             <strong>Literate RDF authoring</strong> through markdown: author semantic graphs using familiar markdown syntax.
-            The <strong>facade</strong> is a general intermediate representation of the markdown structure.
-            The <strong>SPARQL CONSTRUCT</strong> mapping makes the semantics explicit, transforming the facade into domain RDF.
+            The <strong>facade</strong> is a structural intermediate representation of the document.
+            The transform step — <strong>SPARQL CONSTRUCT</strong> (via Comunica) or <strong>N3 rules</strong> (via eyeling) — lifts the facade into domain RDF.
+            Both run live in the browser.
           </p>
           <div style="margin-top: 12px;">
             <label style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 12px;">Select Example:</label>
@@ -171,7 +188,7 @@ export class CanvasExampleComponent {
           ${this.renderInfoNode()}
           ${this.renderMarkdownNode()}
           ${this.renderFacadeNode()}
-          ${this.renderSparqlNode()}
+          ${this.renderTransformNode()}
           ${this.renderSemanticNode()}
         </div>
       </div>
@@ -406,7 +423,6 @@ export class CanvasExampleComponent {
     // Set mediaType on RDF editors
     const facadeEl = this.container.querySelector('.facade-output')
     const semanticEl = this.container.querySelector('.semantic-output')
-    const sparqlEl = this.container.querySelector('.sparql-query')
 
     facadeEl.mediaType = 'text/turtle'
     semanticEl.mediaType = 'text/turtle'
@@ -435,15 +451,24 @@ export class CanvasExampleComponent {
       })
     }
 
-    // SPARQL editor changes
-    this.container.querySelector('.sparql-query').
-      addEventListener('change', (e) => {
-        if (!e.detail.error) {
-          this.currentSparql = e.detail.value
+    // Transform node changes
+    if (this.transformMode === 'sparql') {
+      this.container.querySelector('.sparql-query').
+        addEventListener('change', (e) => {
+          if (!e.detail.error) {
+            this.currentSparql = e.detail.value
+            clearTimeout(this.editTimeout)
+            this.editTimeout = setTimeout(() => this.updateDisplay(), 500)
+          }
+        })
+    } else {
+      this.container.querySelector('.n3-rules-input').
+        addEventListener('input', (e) => {
+          this.currentN3Rules = e.target.value
           clearTimeout(this.editTimeout)
           this.editTimeout = setTimeout(() => this.updateDisplay(), 500)
-        }
-      })
+        })
+    }
   }
 
   async updateDisplay () {
@@ -455,54 +480,53 @@ export class CanvasExampleComponent {
 
     try {
       const markdown = this.container.querySelector('.markdown-input').value
-      const sparqlEl = this.container.querySelector('.sparql-query')
       const facadeEl = this.container.querySelector('.facade-output')
       const semanticEl = this.container.querySelector('.semantic-output')
 
-      if (!sparqlEl || !facadeEl || !semanticEl) {
+      if (!facadeEl || !semanticEl) {
         console.error('Missing required elements for updateDisplay')
         return
       }
 
-      // Wait for custom elements to be defined (web components might not be ready)
-      await Promise.all([
-        customElements.whenDefined('sparql-editor'),
-        customElements.whenDefined('rdf-editor'),
-      ])
-
-      // Set SPARQL query value
-      sparqlEl.value = this.currentSparql
+      // Wait for rdf-editor custom elements
+      await customElements.whenDefined('rdf-editor')
 
       const facade = this.facade || 'facade-x'
       let facadeQuads
 
-      console.log(`Processing with facade: ${facade}`)
-
       if (facade === 'facade-remark') {
         facadeQuads = remarkToRdf(markdown)
-        console.log(`facade-remark produced ${facadeQuads.length} quads`)
       } else {
         facadeQuads = await facadeXToRdf(markdown, this.getOptions())
-        console.log(`facade-x produced ${facadeQuads.length} quads`)
       }
 
-      // Convert quads to dataset for RdfEditor
       facadeEl.dataset = rdf.dataset(facadeQuads)
       facadeEl.prefixes = new Map(Object.entries(ns).map(([k, v]) => [k, v()]))
-      console.log('Facade RDF editor updated')
 
-      // Execute CONSTRUCT query
-      const store = new Store(facadeQuads)
-      const result = await queryEngine.queryQuads(this.currentSparql, {
-        sources: [store],
-      })
+      if (this.transformMode === 'n3rules') {
+        const n3El = this.container.querySelector('.n3-rules-input')
+        if (n3El) n3El.value = this.currentN3Rules
 
-      const semanticQuads = await result.toArray()
-      semanticEl.dataset = rdf.dataset(semanticQuads)
-      semanticEl.prefixes = new Map(
-        Object.entries(ns).map(([k, v]) => [k, v()]))
-      console.log(
-        `Semantic RDF editor updated with ${semanticQuads.length} quads`)
+        const factsN3 = await quadsToTurtle(facadeQuads)
+        const result = eyeling.reasonStream(
+          factsN3 + '\n' + this.currentN3Rules,
+          { includeInputFactsInClosure: false }
+        )
+        semanticEl.value = result.closureN3 || '# (no derived triples)'
+      } else {
+        // SPARQL CONSTRUCT via Comunica
+        await customElements.whenDefined('sparql-editor')
+        const sparqlEl = this.container.querySelector('.sparql-query')
+        sparqlEl.value = this.currentSparql
+
+        const store = new Store(facadeQuads)
+        const result = await queryEngine.queryQuads(this.currentSparql, {
+          sources: [store],
+        })
+        const semanticQuads = await result.toArray()
+        semanticEl.dataset = rdf.dataset(semanticQuads)
+        semanticEl.prefixes = new Map(Object.entries(ns).map(([k, v]) => [k, v()]))
+      }
     } catch (error) {
       console.error('Error updating display:', error)
       const errorMsg = `Error: ${error.message}\n\n${error.stack || ''}`
@@ -511,19 +535,13 @@ export class CanvasExampleComponent {
       if (facadeEl) facadeEl.value = errorMsg
       if (semanticEl) semanticEl.value = errorMsg
     } finally {
-      console.log('updateDisplay finally block, setting isProcessing = false')
       this.isProcessing = false
     }
   }
 
   async setMarkdown (markdown) {
-    console.log(
-      `setMarkdown called with ${markdown.length} chars, facade: ${this.facade}`)
     const input = this.container.querySelector('.markdown-input')
-    if (!input) {
-      console.error('Markdown input not found')
-      return
-    }
+    if (!input) return
     input.value = markdown
 
     // Wait for any pending processing to complete
@@ -532,16 +550,9 @@ export class CanvasExampleComponent {
       await new Promise(resolve => setTimeout(resolve, 50))
       attempts++
     }
+    if (this.isProcessing) this.isProcessing = false
 
-    // Force reset processing flag if stuck
-    if (this.isProcessing) {
-      console.warn('Force resetting isProcessing flag')
-      this.isProcessing = false
-    }
-
-    console.log('Calling updateDisplay from setMarkdown')
     await this.updateDisplay()
-    console.log('updateDisplay completed')
   }
 
   loadNodePositions () {
