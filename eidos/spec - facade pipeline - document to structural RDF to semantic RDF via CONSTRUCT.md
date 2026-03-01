@@ -18,6 +18,14 @@ Convert heterogeneous documents (markdown, Excel) into semantic RDF by first pro
 - When no CONSTRUCT is present, the pipeline returns the facade graph only
 - Snapshot tests capture both the facade and the semantic output for each example
 
+### Playground (browser UI)
+- The pipeline is visualised as a **canvas of four connected nodes**: Markdown Input → Facade RDF → SPARQL CONSTRUCT → Target RDF
+- All four nodes are live: editing markdown or the SPARQL query re-runs the full pipeline (500ms debounce)
+- Facade and semantic outputs are displayed in `rdf-editor` web components; the query in a `sparql-editor`
+- Nodes are draggable (by header), resizable (edge handles via Moveable), and connected by animated arrows (LeaderLine)
+- Canvas supports pan and zoom (Panzoom); node positions and pan/zoom state are persisted to localStorage
+- Example documents are loaded from `playground/examples/*/example.md` at build time via Vite's `import.meta.glob`
+
 ## Design
 
 ### Two-stage separation
@@ -56,10 +64,12 @@ Each facade uses its own namespace to avoid collisions:
 
 ## Interactions
 
-- `processExample` orchestrates the full pipeline: read → frontmatter parse → facade → CONSTRUCT → semantic quads
+- `processExample` orchestrates the full pipeline (Node.js): read → frontmatter parse → facade → CONSTRUCT → semantic quads
 - Facade quads are loaded into an N3 store; Comunica executes the CONSTRUCT against it
 - `serialize-utils` provides Turtle printing for inspection
 - Snapshot tests in `test/validate-examples.test.js` cover both facade and semantic outputs
+- `CanvasExampleComponent` runs the same pipeline in the browser, re-executing on every edit
+- The playground shares the same facade modules (`src/`) — same code, different host environment
 
 ## Mapping
 
@@ -69,3 +79,6 @@ Each facade uses its own namespace to avoid collisions:
 > [[src/namespaces.js]]
 > [[src/serialize-utils.js]]
 > [[test/process-example.js]]
+> [[playground/playground.js]]
+> [[playground/CanvasExampleComponent.js]]
+> [[playground/config.js]]
