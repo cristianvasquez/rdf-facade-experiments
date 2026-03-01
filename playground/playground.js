@@ -42,6 +42,7 @@ const examples = Object.entries(exampleFiles)
       description: frontmatter.description || '',
       markdown,
       sparql: frontmatter.construct || '',
+      n3rules: frontmatter.n3rules || '',
       facade: frontmatter.facade || 'facade-x',
       preserveOrder: frontmatter['preserve-order'] !== undefined ? frontmatter['preserve-order'] : true,
       ignore: frontmatter.ignore || false
