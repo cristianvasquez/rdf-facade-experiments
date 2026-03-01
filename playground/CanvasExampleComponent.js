@@ -1,5 +1,6 @@
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
-import { Store } from 'n3'
+import { Store, Writer as N3Writer } from 'n3'
+import eyeling from 'eyeling/eyeling.js'
 import rdf from 'rdf-ext'
 import { ns } from '../src/namespaces.js'
 import 'rdf-elements/rdf-elements.js'
@@ -14,6 +15,14 @@ import Moveable from 'moveable'
 
 // Reusable QueryEngine instance
 const queryEngine = new QueryEngine()
+
+function quadsToTurtle (quads) {
+  return new Promise((resolve, reject) => {
+    const writer = new N3Writer()
+    writer.addQuads(quads)
+    writer.end((err, result) => err ? reject(err) : resolve(result))
+  })
+}
 
 export class CanvasExampleComponent {
   constructor (
@@ -117,7 +126,7 @@ export class CanvasExampleComponent {
       <div class="canvas-node sparql-node" data-node-id="node-3" data-x="${left}" data-y="${top}" style="transform: translate(${left}px, ${top}px);">
         <div class="node-header">
           <span class="node-title">${title}</span>
-          <span class="node-badge">${isN3 ? 'eyeling · cli only' : 'editable'}</span>
+          <span class="node-badge">${isN3 ? 'eyeling' : 'editable'}</span>
           <button class="collapse-btn" data-node="node-3">▼</button>
         </div>
         <div class="node-content">
@@ -155,8 +164,8 @@ export class CanvasExampleComponent {
           <p class="intro-text">
             <strong>Literate RDF authoring</strong> through markdown: author semantic graphs using familiar markdown syntax.
             The <strong>facade</strong> is a structural intermediate representation of the document.
-            The transform step — <strong>SPARQL CONSTRUCT</strong> or <strong>N3 rules</strong> — lifts the facade into domain RDF.
-            N3 rules run via eyeling (CLI only); SPARQL CONSTRUCT runs live in the browser.
+            The transform step — <strong>SPARQL CONSTRUCT</strong> (via Comunica) or <strong>N3 rules</strong> (via eyeling) — lifts the facade into domain RDF.
+            Both run live in the browser.
           </p>
           <div style="margin-top: 12px;">
             <label style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 12px;">Select Example:</label>
@@ -456,6 +465,8 @@ export class CanvasExampleComponent {
       this.container.querySelector('.n3-rules-input').
         addEventListener('input', (e) => {
           this.currentN3Rules = e.target.value
+          clearTimeout(this.editTimeout)
+          this.editTimeout = setTimeout(() => this.updateDisplay(), 500)
         })
     }
   }
@@ -493,10 +504,15 @@ export class CanvasExampleComponent {
       facadeEl.prefixes = new Map(Object.entries(ns).map(([k, v]) => [k, v()]))
 
       if (this.transformMode === 'n3rules') {
-        // N3 rules require the EYE binary — not executable in the browser
         const n3El = this.container.querySelector('.n3-rules-input')
         if (n3El) n3El.value = this.currentN3Rules
-        semanticEl.value = '# N3 rules run server-side via eyeling.\n# Use: node test/process-example.js <file> --verbose'
+
+        const factsN3 = await quadsToTurtle(facadeQuads)
+        const result = eyeling.reasonStream(
+          factsN3 + '\n' + this.currentN3Rules,
+          { includeInputFactsInClosure: false }
+        )
+        semanticEl.value = result.closureN3 || '# (no derived triples)'
       } else {
         // SPARQL CONSTRUCT via Comunica
         await customElements.whenDefined('sparql-editor')
