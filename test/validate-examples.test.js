@@ -1,5 +1,6 @@
 import { describe, it } from 'mocha'
 import assert from 'assert'
+import { Parser } from 'n3'
 import { processExample } from './process-example.js'
 import { compareSnapshot, shouldUpdateSnapshots } from './snapshot-helper.js'
 
@@ -8,10 +9,19 @@ const EXAMPLES = [
   '02-entities-explicit',
   '03-nested-lists',
   '04-tables',
-  '05-wikilinks',
+  '05-team-alpha-n3',
 ]
 
 const UPDATE_SNAPSHOTS = shouldUpdateSnapshots()
+
+/**
+ * Parse a Turtle string into RDFJS quads using n3 Parser.
+ * Used to convert n3rulesOutput (Turtle text) into a comparable quad array.
+ */
+function parseTurtle (turtle) {
+  const parser = new Parser()
+  return parser.parse(turtle)
+}
 
 describe('Example Validation (Snapshot-based)', () => {
   for (const exampleName of EXAMPLES) {
@@ -63,11 +73,16 @@ describe('Example Validation (Snapshot-based)', () => {
           showConstruct: false
         })
 
-        assert.ok(result.semanticQuads, 'Should generate semantic quads')
-        assert.ok(result.semanticQuads.length > 0, 'Semantic RDF should have quads')
+        // N3 rules examples return n3rulesOutput (Turtle string); SPARQL examples return semanticQuads
+        const resultQuads = result.semanticQuads
+          ? result.semanticQuads
+          : parseTurtle(result.n3rulesOutput || '')
+
+        assert.ok(resultQuads, 'Should generate result quads')
+        assert.ok(resultQuads.length > 0, 'Result RDF should have quads')
 
         const comparison = await compareSnapshot(
-          result.semanticQuads,
+          resultQuads,
           snapshotPath,
           UPDATE_SNAPSHOTS
         )
