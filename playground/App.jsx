@@ -123,7 +123,6 @@ function MarkdownNode({ data }) {
   )
 }
 
-// Shared component for nodes that display RDF via rdf-editor web component
 function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle, onFocus }) {
   const ref = useRef(null)
 
@@ -135,7 +134,7 @@ function RdfDisplayNode({ color, label, sub, target = false, source = false, rdf
       if (rdfDataset != null) {
         el.dataset = rdfDataset
         el.prefixes = nsPrefixes
-      } else if (turtle != null) {
+      } else if (turtle) {
         el.value = turtle
       }
     })
@@ -178,7 +177,6 @@ function TransformNode({ data }) {
   const onChangeRef = useRef(data.onChange)
   onChangeRef.current = data.onChange
 
-  // Set sparql-editor value when the example changes
   useEffect(() => {
     if (data.mode !== 'sparql') return
     customElements.whenDefined('sparql-editor').then(() => {
@@ -186,7 +184,6 @@ function TransformNode({ data }) {
     })
   }, [data.exampleId, data.mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Attach sparql-editor change listener
   useEffect(() => {
     const el = sparqlRef.current
     if (!el || data.mode !== 'sparql') return
@@ -220,7 +217,7 @@ function TransformNode({ data }) {
   )
 }
 
-// ─── Node types — defined at module level for React Flow stability ────────────
+// ─── Node types ───────────────────────────────────────────────────────────────
 
 const nodeTypes = {
   markdownNode: MarkdownNode,
@@ -254,7 +251,10 @@ const btnStyle = (disabled) => ({
   color: disabled ? '#bbb' : '#333', opacity: disabled ? 0.5 : 1,
 })
 
-// Content area for a single pipeline node — no header, no nav
+const divider = { display: 'inline-block', width: 1, height: 20, background: '#ddd', margin: '0 4px' }
+
+// Content area for one pipeline node. Keyed by nodeId at call sites to force
+// a fresh mount (and fresh web component) when the node changes.
 function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
                              facadeDataset, semanticDataset, semanticTurtle, mode, example }) {
   const rdfRef = useRef(null)
@@ -262,20 +262,28 @@ function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3
   const onChangeRef = useRef(null)
   onChangeRef.current = mode === 'n3rules' ? setN3rules : setSparql
 
-  // Sync rdf-editor for facade/semantic
+  // Sync rdf-editor for facade nodes
   useEffect(() => {
+    if (nodeId !== 'facade') return
     const el = rdfRef.current
     if (!el) return
     customElements.whenDefined('rdf-editor').then(() => {
       el.mediaType = 'text/turtle'
-      if (nodeId === 'facade') {
-        if (facadeDataset != null) { el.dataset = facadeDataset; el.prefixes = nsPrefixes }
-      } else if (nodeId === 'semantic') {
-        if (semanticDataset != null) { el.dataset = semanticDataset; el.prefixes = nsPrefixes }
-        else if (semanticTurtle != null) { el.value = semanticTurtle }
-      }
+      if (facadeDataset != null) { el.dataset = facadeDataset; el.prefixes = nsPrefixes }
     })
-  }, [nodeId, facadeDataset, semanticDataset, semanticTurtle])
+  }, [nodeId, facadeDataset])
+
+  // Sync rdf-editor for semantic nodes
+  useEffect(() => {
+    if (nodeId !== 'semantic') return
+    const el = rdfRef.current
+    if (!el) return
+    customElements.whenDefined('rdf-editor').then(() => {
+      el.mediaType = 'text/turtle'
+      if (semanticDataset != null) { el.dataset = semanticDataset; el.prefixes = nsPrefixes }
+      else if (semanticTurtle) { el.value = semanticTurtle }
+    })
+  }, [nodeId, semanticDataset, semanticTurtle])
 
   // Sync sparql-editor value when example changes
   useEffect(() => {
@@ -323,24 +331,17 @@ function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3
   )
 }
 
-// Mini nav header for a pane in split view
-function PaneNav({ nodeId, onNavigate }) {
-  const idx = PIPELINE_NODES.indexOf(nodeId)
-  const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
-  const nextId = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
-  const color = COLORS[nodeId] ?? '#888'
+// Thin coloured label bar used above each pane in split view
+function PaneLabel({ nodeId }) {
   return (
-    <div style={{ padding: '6px 12px', background: '#f8f9fa', borderBottom: `2px solid ${color}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-      <button onClick={() => prevId && onNavigate(prevId)} disabled={!prevId} style={btnStyle(!prevId)}>‹</button>
-      <span style={{ fontWeight: 600, fontSize: 13, color: '#1a1a1a', flex: 1, textAlign: 'center' }}>
-        {NODE_LABELS[nodeId]} <span style={{ fontWeight: 400, fontSize: 11, color: '#999' }}>({idx + 1} / {PIPELINE_NODES.length})</span>
-      </span>
-      <button onClick={() => nextId && onNavigate(nextId)} disabled={!nextId} style={btnStyle(!nextId)}>›</button>
+    <div style={{ padding: '5px 12px', background: '#f8f9fa', borderBottom: `2px solid ${COLORS[nodeId]}`, flexShrink: 0 }}>
+      <span style={{ fontWeight: 600, fontSize: 12, color: '#555' }}>{NODE_LABELS[nodeId]}</span>
     </div>
   )
 }
 
-function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSplit, onNavigateSplit,
+function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSplit,
+                     onSplitPrev, onSplitNext,
                      markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
                      facadeDataset, semanticDataset, semanticTurtle, mode, example }) {
   const color = COLORS[nodeId] ?? '#888'
@@ -348,28 +349,44 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
   const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
   const nextId = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
 
-  // Keyboard navigation for the main (left) pane — skip when editing text
+  // In split mode, can we slide the window left/right?
+  const canSplitPrev = idx > 0
+  const canSplitNext = idx < PIPELINE_NODES.length - 2
+
+  // Keyboard navigation
   useEffect(() => {
     function handleKey(e) {
       const tag = document.activeElement?.tagName?.toLowerCase()
       if (tag === 'textarea' || tag === 'input') return
-      if (e.key === 'ArrowLeft'  && prevId) { e.preventDefault(); onNavigate(prevId) }
-      if (e.key === 'ArrowRight' && nextId) { e.preventDefault(); onNavigate(nextId) }
+      if (splitNodeId) {
+        if (e.key === 'ArrowLeft'  && canSplitPrev) { e.preventDefault(); onSplitPrev() }
+        if (e.key === 'ArrowRight' && canSplitNext) { e.preventDefault(); onSplitNext() }
+      } else {
+        if (e.key === 'ArrowLeft'  && prevId) { e.preventDefault(); onNavigate(prevId) }
+        if (e.key === 'ArrowRight' && nextId) { e.preventDefault(); onNavigate(nextId) }
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [prevId, nextId, onNavigate])
+  }, [prevId, nextId, onNavigate, splitNodeId, canSplitPrev, canSplitNext, onSplitPrev, onSplitNext])
 
   const contentProps = { markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules, facadeDataset, semanticDataset, semanticTurtle, mode, example }
 
   if (splitNodeId) {
     return (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-        {/* Split outer header */}
+        {/* Split header — single nav that slides the window */}
         <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: '1px solid #d0d0d0', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <button onClick={onBack} style={btnStyle(false)}>← Back</button>
-          <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
+          <span style={divider} />
           <button onClick={onCloseSplit} style={btnStyle(false)}>⊠ Close split</button>
+          <span style={divider} />
+          <button onClick={onSplitPrev} disabled={!canSplitPrev} style={btnStyle(!canSplitPrev)}>‹</button>
+          <span style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a', padding: '0 4px' }}>
+            {NODE_LABELS[nodeId]} · {NODE_LABELS[splitNodeId]}
+            <span style={{ fontWeight: 400, fontSize: 12, color: '#999' }}> ({idx + 1}–{idx + 2} / {PIPELINE_NODES.length})</span>
+          </span>
+          <button onClick={onSplitNext} disabled={!canSplitNext} style={btnStyle(!canSplitNext)}>›</button>
           {example?.description && (
             <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
           )}
@@ -377,12 +394,12 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
         {/* Two panes */}
         <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', borderRight: '2px solid #e0e0e0' }}>
-            <PaneNav nodeId={nodeId} onNavigate={onNavigate} />
-            <FocusPaneContent nodeId={nodeId} {...contentProps} />
+            <PaneLabel nodeId={nodeId} />
+            <FocusPaneContent key={nodeId} nodeId={nodeId} {...contentProps} />
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-            <PaneNav nodeId={splitNodeId} onNavigate={onNavigateSplit} />
-            <FocusPaneContent nodeId={splitNodeId} {...contentProps} />
+            <PaneLabel nodeId={splitNodeId} />
+            <FocusPaneContent key={splitNodeId} nodeId={splitNodeId} {...contentProps} />
           </div>
         </div>
       </div>
@@ -391,10 +408,10 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-      {/* Single-pane focus header */}
+      {/* Single-pane header */}
       <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <button onClick={onBack} style={btnStyle(false)}>← Back</button>
-        <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
+        <span style={divider} />
         <button onClick={() => prevId && onNavigate(prevId)} disabled={!prevId} style={btnStyle(!prevId)}>
           ‹ {prevId ? NODE_LABELS[prevId] : ''}
         </button>
@@ -404,13 +421,13 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
         <button onClick={() => nextId && onNavigate(nextId)} disabled={!nextId} style={btnStyle(!nextId)}>
           {nextId ? NODE_LABELS[nextId] : ''} ›
         </button>
-        <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
+        <span style={divider} />
         <button onClick={onSplit} style={btnStyle(false)}>⊞ Split</button>
         {example?.description && (
           <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
         )}
       </div>
-      <FocusPaneContent nodeId={nodeId} {...contentProps} />
+      <FocusPaneContent key={nodeId} nodeId={nodeId} {...contentProps} />
     </div>
   )
 }
@@ -452,17 +469,33 @@ export function App() {
 
   function handleSplit() {
     const idx = PIPELINE_NODES.indexOf(focusedNodeId)
-    const next = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
-    const prev = idx > 0 ? PIPELINE_NODES[idx - 1] : null
-    setSplitNodeId(next ?? prev)
+    // Clamp so right pane is always valid
+    const leftIdx = Math.min(idx, PIPELINE_NODES.length - 2)
+    setFocusedNodeId(PIPELINE_NODES[leftIdx])
+    setSplitNodeId(PIPELINE_NODES[leftIdx + 1])
   }
 
-  // ── Pipeline: markdown + transform → facade + semantic ──
+  function handleSplitPrev() {
+    const idx = PIPELINE_NODES.indexOf(focusedNodeId)
+    if (idx > 0) {
+      setFocusedNodeId(PIPELINE_NODES[idx - 1])
+      setSplitNodeId(PIPELINE_NODES[idx])
+    }
+  }
+
+  function handleSplitNext() {
+    const idx = PIPELINE_NODES.indexOf(focusedNodeId)
+    if (idx < PIPELINE_NODES.length - 2) {
+      setFocusedNodeId(PIPELINE_NODES[idx + 1])
+      setSplitNodeId(PIPELINE_NODES[idx + 2])
+    }
+  }
+
+  // ── Pipeline ──
   useEffect(() => {
     let cancelled = false
     async function run() {
       try {
-        // Step 1: facade
         let facadeQuads
         if (example.facade === 'facade-remark') {
           facadeQuads = remarkToRdf(markdown)
@@ -476,7 +509,6 @@ export function App() {
         if (cancelled) return
         setFacadeDataset(rdf.dataset(facadeQuads))
 
-        // Step 2: transform
         if (mode === 'n3rules') {
           const factsN3 = await quadsToTurtle(facadeQuads)
           if (cancelled) return
@@ -542,7 +574,8 @@ export function App() {
             onNavigate={setFocusedNodeId}
             onSplit={handleSplit}
             onCloseSplit={() => setSplitNodeId(null)}
-            onNavigateSplit={setSplitNodeId}
+            onSplitPrev={handleSplitPrev}
+            onSplitNext={handleSplitNext}
             markdown={markdown} setMarkdown={setMarkdown}
             sparql={sparql} setSparql={setSparql}
             n3rules={n3rules} setN3rules={setN3rules}
