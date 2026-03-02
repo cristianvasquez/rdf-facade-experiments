@@ -38,13 +38,22 @@ Goal: Confirm whether N3 edits now trigger correct output updates after today's 
 
 ### Phase 2 - Extract usePipeline hook - status: open
 
-Goal: Move pipeline execution out of `App` into `playground/usePipeline.js` for clean separation.
+Goal: Move pipeline execution out of `App` into `playground/usePipeline.js` for clean separation, and split into two independent stages so only the affected stage re-runs when an input changes.
+
+**Key design constraint:** only subsequent stages should re-run when an input changes.
+- Editing `markdown` or `example` → re-run facade stage, then semantic stage
+- Editing `n3rules` or `sparql` → re-run semantic stage only (facade is unchanged)
+
+Implement this as two separate effects (or two hooks):
+- Stage 1: `[markdown, example]` → `facadeDataset`
+- Stage 2: `[facadeDataset, n3rules, sparql, mode]` → `semanticDataset`
 
 1. [ ] Create `playground/usePipeline.js`
    - Signature: `usePipeline({ markdown, sparql, n3rules, example })` → `{ facadeDataset, semanticDataset, error, isRunning }`
-   - Move all pipeline logic from `App`'s `useEffect` into the hook
-   - Preserve the `cancelled` flag pattern for cleanup
-   - Expose `isRunning` state (set to `true` at run start, `false` on completion or error)
+   - **Two-stage internal structure**: stage 1 effect on `[markdown, example]`, stage 2 effect on `[facadeDataset, n3rules, sparql, mode]`
+   - Each stage has its own `cancelled` cleanup flag
+   - `isRunning` is true when either stage is in-flight
+   - `error` is set by whichever stage fails; cleared at the start of each run
 
 2. [ ] Replace inline pipeline effect in App with `usePipeline`
    - Import and call `usePipeline({ markdown, sparql, n3rules, example })`
@@ -80,3 +89,4 @@ Goal: Move pipeline execution out of `App` into `playground/usePipeline.js` for 
 ## Progress Log
 
 - 2603021022 — Plan created. N3 prefix fix already applied (closureN3 → dataset via turtleToDataset).
+- 2603021022 — Added two-stage pipeline constraint: only subsequent stages re-run on input change.
