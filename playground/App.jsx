@@ -254,29 +254,13 @@ const btnStyle = (disabled) => ({
   color: disabled ? '#bbb' : '#333', opacity: disabled ? 0.5 : 1,
 })
 
-function FocusView({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
-                     facadeDataset, semanticDataset, semanticTurtle, mode, example, onBack, onNavigate }) {
+// Content area for a single pipeline node — no header, no nav
+function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
+                             facadeDataset, semanticDataset, semanticTurtle, mode, example }) {
   const rdfRef = useRef(null)
   const sparqlRef = useRef(null)
   const onChangeRef = useRef(null)
   onChangeRef.current = mode === 'n3rules' ? setN3rules : setSparql
-
-  const color = COLORS[nodeId] ?? '#888'
-  const idx = PIPELINE_NODES.indexOf(nodeId)
-  const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
-  const nextId = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
-
-  // Keyboard arrow navigation (skip when editing text)
-  useEffect(() => {
-    function handleKey(e) {
-      const tag = document.activeElement?.tagName?.toLowerCase()
-      if (tag === 'textarea' || tag === 'input') return
-      if (e.key === 'ArrowLeft'  && prevId) { e.preventDefault(); onNavigate(prevId) }
-      if (e.key === 'ArrowRight' && nextId) { e.preventDefault(); onNavigate(nextId) }
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [prevId, nextId, onNavigate])
 
   // Sync rdf-editor for facade/semantic
   useEffect(() => {
@@ -311,8 +295,103 @@ function FocusView({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, 
   }, [nodeId, mode])
 
   return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {nodeId === 'markdown' && (
+        <textarea
+          style={{ flex: 1, border: 'none', padding: 16, fontFamily: 'monospace', fontSize: 13, resize: 'none', outline: 'none', minHeight: 0, width: '100%', boxSizing: 'border-box' }}
+          value={markdown ?? ''}
+          onChange={(e) => setMarkdown(e.target.value)}
+          spellCheck={false}
+        />
+      )}
+      {(nodeId === 'facade' || nodeId === 'semantic') && (
+        <rdf-editor ref={rdfRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
+      )}
+      {nodeId === 'transform' && (
+        mode === 'n3rules' ? (
+          <textarea
+            style={{ flex: 1, border: 'none', padding: 16, fontFamily: 'monospace', fontSize: 13, resize: 'none', outline: 'none', minHeight: 0, width: '100%', boxSizing: 'border-box' }}
+            value={n3rules ?? ''}
+            onChange={(e) => setN3rules(e.target.value)}
+            spellCheck={false}
+          />
+        ) : (
+          <sparql-editor ref={sparqlRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        )
+      )}
+    </div>
+  )
+}
+
+// Mini nav header for a pane in split view
+function PaneNav({ nodeId, onNavigate }) {
+  const idx = PIPELINE_NODES.indexOf(nodeId)
+  const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
+  const nextId = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
+  const color = COLORS[nodeId] ?? '#888'
+  return (
+    <div style={{ padding: '6px 12px', background: '#f8f9fa', borderBottom: `2px solid ${color}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      <button onClick={() => prevId && onNavigate(prevId)} disabled={!prevId} style={btnStyle(!prevId)}>‹</button>
+      <span style={{ fontWeight: 600, fontSize: 13, color: '#1a1a1a', flex: 1, textAlign: 'center' }}>
+        {NODE_LABELS[nodeId]} <span style={{ fontWeight: 400, fontSize: 11, color: '#999' }}>({idx + 1} / {PIPELINE_NODES.length})</span>
+      </span>
+      <button onClick={() => nextId && onNavigate(nextId)} disabled={!nextId} style={btnStyle(!nextId)}>›</button>
+    </div>
+  )
+}
+
+function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSplit, onNavigateSplit,
+                     markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
+                     facadeDataset, semanticDataset, semanticTurtle, mode, example }) {
+  const color = COLORS[nodeId] ?? '#888'
+  const idx = PIPELINE_NODES.indexOf(nodeId)
+  const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
+  const nextId = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
+
+  // Keyboard navigation for the main (left) pane — skip when editing text
+  useEffect(() => {
+    function handleKey(e) {
+      const tag = document.activeElement?.tagName?.toLowerCase()
+      if (tag === 'textarea' || tag === 'input') return
+      if (e.key === 'ArrowLeft'  && prevId) { e.preventDefault(); onNavigate(prevId) }
+      if (e.key === 'ArrowRight' && nextId) { e.preventDefault(); onNavigate(nextId) }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [prevId, nextId, onNavigate])
+
+  const contentProps = { markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules, facadeDataset, semanticDataset, semanticTurtle, mode, example }
+
+  if (splitNodeId) {
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        {/* Split outer header */}
+        <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: '1px solid #d0d0d0', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <button onClick={onBack} style={btnStyle(false)}>← Back</button>
+          <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
+          <button onClick={onCloseSplit} style={btnStyle(false)}>⊠ Close split</button>
+          {example?.description && (
+            <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
+          )}
+        </div>
+        {/* Two panes */}
+        <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', borderRight: '2px solid #e0e0e0' }}>
+            <PaneNav nodeId={nodeId} onNavigate={onNavigate} />
+            <FocusPaneContent nodeId={nodeId} {...contentProps} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            <PaneNav nodeId={splitNodeId} onNavigate={onNavigateSplit} />
+            <FocusPaneContent nodeId={splitNodeId} {...contentProps} />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-      {/* Focus header */}
+      {/* Single-pane focus header */}
       <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <button onClick={onBack} style={btnStyle(false)}>← Back</button>
         <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
@@ -325,36 +404,13 @@ function FocusView({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, 
         <button onClick={() => nextId && onNavigate(nextId)} disabled={!nextId} style={btnStyle(!nextId)}>
           {nextId ? NODE_LABELS[nextId] : ''} ›
         </button>
+        <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
+        <button onClick={onSplit} style={btnStyle(false)}>⊞ Split</button>
         {example?.description && (
           <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
         )}
       </div>
-      {/* Content */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        {nodeId === 'markdown' && (
-          <textarea
-            style={{ flex: 1, border: 'none', padding: 16, fontFamily: 'monospace', fontSize: 13, resize: 'none', outline: 'none', minHeight: 0, width: '100%', boxSizing: 'border-box' }}
-            value={markdown ?? ''}
-            onChange={(e) => setMarkdown(e.target.value)}
-            spellCheck={false}
-          />
-        )}
-        {(nodeId === 'facade' || nodeId === 'semantic') && (
-          <rdf-editor ref={rdfRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
-        )}
-        {nodeId === 'transform' && (
-          mode === 'n3rules' ? (
-            <textarea
-              style={{ flex: 1, border: 'none', padding: 16, fontFamily: 'monospace', fontSize: 13, resize: 'none', outline: 'none', minHeight: 0, width: '100%', boxSizing: 'border-box' }}
-              value={n3rules ?? ''}
-              onChange={(e) => setN3rules(e.target.value)}
-              spellCheck={false}
-            />
-          ) : (
-            <sparql-editor ref={sparqlRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
-          )
-        )}
-      </div>
+      <FocusPaneContent nodeId={nodeId} {...contentProps} />
     </div>
   )
 }
@@ -373,6 +429,7 @@ export function App() {
   const [semanticDataset, setSemanticDataset] = useState(null)
   const [semanticTurtle, setSemanticTurtle]   = useState(null)
   const [focusedNodeId, setFocusedNodeId] = useState(null)
+  const [splitNodeId, setSplitNodeId]     = useState(null)
 
   const mode = example?.n3rules ? 'n3rules' : 'sparql'
 
@@ -386,6 +443,18 @@ export function App() {
     setFacadeDataset(null)
     setSemanticDataset(null)
     setSemanticTurtle(null)
+  }
+
+  function handleBack() {
+    setFocusedNodeId(null)
+    setSplitNodeId(null)
+  }
+
+  function handleSplit() {
+    const idx = PIPELINE_NODES.indexOf(focusedNodeId)
+    const next = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
+    const prev = idx > 0 ? PIPELINE_NODES[idx - 1] : null
+    setSplitNodeId(next ?? prev)
   }
 
   // ── Pipeline: markdown + transform → facade + semantic ──
@@ -468,6 +537,12 @@ export function App() {
         {focusedNodeId ? (
           <FocusView
             nodeId={focusedNodeId}
+            splitNodeId={splitNodeId}
+            onBack={handleBack}
+            onNavigate={setFocusedNodeId}
+            onSplit={handleSplit}
+            onCloseSplit={() => setSplitNodeId(null)}
+            onNavigateSplit={setSplitNodeId}
             markdown={markdown} setMarkdown={setMarkdown}
             sparql={sparql} setSparql={setSparql}
             n3rules={n3rules} setN3rules={setN3rules}
@@ -476,8 +551,6 @@ export function App() {
             semanticTurtle={semanticTurtle}
             mode={mode}
             example={example}
-            onBack={() => setFocusedNodeId(null)}
-            onNavigate={setFocusedNodeId}
           />
         ) : (
           <ReactFlow
