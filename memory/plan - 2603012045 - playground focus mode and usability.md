@@ -16,17 +16,18 @@ The audience is colleagues unfamiliar with the facade concept — the playground
 
 ## Phases
 
-### Phase 1 - Focus mode (single node) - status: active
+### Phase 1 - Focus mode (single node) - status: done
 
 Click a node header → canvas is replaced by a full-height view of that node's content.
 Click the header again (or a back button) → return to the flow.
 
-1. [ ] Add focus mode to App.jsx
-   - `focusedNodeId` state (null = flow view)
-   - clicking a node header sets `focusedNodeId`
-   - render `FocusView` component instead of ReactFlow when `focusedNodeId` is set
-   - `FocusView` shows the node's full content (textarea or rdf-editor) at full height
-   - a back button returns to the flow view
+1. [x] Add focus mode to App.jsx
+   - => `focusedNodeId` state added (null = flow view)
+   - => clicking any node header sets `focusedNodeId` (cursor:pointer on all headers)
+   - => `FocusView` component renders instead of ReactFlow when focused
+   - => `FocusView` shows full-height content: textarea for markdown/n3rules, rdf-editor for facade/semantic, sparql-editor for sparql transform
+   - => "← Back" button returns to flow; description shown in focus header
+   - => `290b56a` feat: add focus mode
 
 ### Phase 2 - Pipeline navigation in focus mode - status: open
 
@@ -72,4 +73,4 @@ Examples should explain themselves to colleagues new to the facade idea.
 
 ## Progress Log
 
-<!-- Timestamped entries tracking work done. Updated after every action. -->
+- 2603021 — Phase 1 complete: focus mode implemented in App.jsx. Click any node header to enter full-height view; ← Back returns to flow. All four node types (markdown, facade, transform, semantic) supported.
