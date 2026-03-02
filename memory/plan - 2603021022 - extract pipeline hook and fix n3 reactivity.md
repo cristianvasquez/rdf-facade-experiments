@@ -20,7 +20,7 @@ Related fix already applied (2603021022): N3 closure output is now parsed into a
 
 ## Phases
 
-### Phase 1 - Diagnose and harden reactivity - status: open
+### Phase 1 - Diagnose and harden reactivity - status: completed
 
 Goal: Confirm whether N3 edits now trigger correct output updates after today's fix, and ensure errors are visible rather than silent.
 
@@ -31,7 +31,7 @@ Goal: Confirm whether N3 edits now trigger correct output updates after today's 
    - Display error visually in the SemanticNode (e.g. red text below the rdf-editor)
    - => `be75468` — error replaces rdf-editor in the body when present (red monospace text)
 
-2. [ ] Verify N3 reactivity end-to-end
+2. [x] Verify N3 reactivity end-to-end
    - Load example `05-team-alpha-n3`
    - Edit an N3 rule (e.g. change `:Team` to `:Group`) and confirm the Target RDF updates
    - Confirm the output is now prettified with correct prefixes (from today's fix)
@@ -93,3 +93,4 @@ Implement this as two separate effects (or two hooks):
 - 2603021022 — Plan created. N3 prefix fix already applied (closureN3 → dataset via turtleToDataset).
 - 2603021022 — Added two-stage pipeline constraint: only subsequent stages re-run on input change.
 - 2603021022 — Phase 1.1 done. Phase 1.2: found root cause (missing prefix preamble in closureN3), fixed with prefix prepend.
+- 2603021048 — Phase 1 complete. N3 output now prettified correctly. Cursor-jump bug captured as [[todo - 2603021048 - n3 rules textarea cursor jumps when editing in graph node]].
