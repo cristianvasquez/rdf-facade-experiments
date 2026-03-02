@@ -375,11 +375,9 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
   if (splitNodeId) {
     return (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-        {/* Split header: Back + close-split left, nav right */}
+        {/* Split header: Back left, nav + split-toggle right */}
         <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: '1px solid #d0d0d0', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <button onClick={onBack} style={btnStyle(false)}>← Back</button>
-          <span style={divider} />
-          <button onClick={onCloseSplit} style={btnStyle(false)}>⊠ Close split</button>
           {example?.description && (
             <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
           )}
@@ -390,6 +388,8 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
             <span style={{ fontWeight: 400, fontSize: 12, color: '#999' }}> ({idx + 1}–{idx + 2} / {PIPELINE_NODES.length})</span>
           </span>
           <button onClick={onSplitNext} disabled={!canSplitNext} style={btnStyle(!canSplitNext)}>›</button>
+          <span style={divider} />
+          <button onClick={onCloseSplit} style={btnStyle(false)}>⊠ Close split</button>
         </div>
         {/* Two panes */}
         <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
