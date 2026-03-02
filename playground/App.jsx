@@ -68,16 +68,26 @@ const COLORS = {
   semantic: '#51cf66',
 }
 
+const PIPELINE_NODES = ['markdown', 'facade', 'transform', 'semantic']
+
+const NODE_LABELS = {
+  markdown: 'Markdown',
+  facade: 'Facade RDF',
+  transform: 'Transform',
+  semantic: 'Target RDF',
+}
+
 const wrap = (color) => ({
   width: '100%', height: '100%', background: '#fff',
   border: `2px solid ${color}`, borderRadius: 8,
   display: 'flex', flexDirection: 'column', overflow: 'hidden', boxSizing: 'border-box',
 })
 
-const head = (color) => ({
+const head = (color, clickable = false) => ({
   padding: '8px 12px', background: '#f8f9fa',
   borderBottom: '1px solid #e0e0e0', borderLeft: `4px solid ${color}`,
   display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+  ...(clickable && { cursor: 'pointer', userSelect: 'none' }),
 })
 
 const body = { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }
@@ -98,7 +108,7 @@ function MarkdownNode({ data }) {
   return (
     <div style={wrap(COLORS.markdown)}>
       <Handle type="source" position={Position.Right} />
-      <div style={head(COLORS.markdown)}>
+      <div style={head(COLORS.markdown, true)} onClick={() => data.onFocus?.()}>
         <Title text="Markdown" /><Badge label="input" />
       </div>
       <div style={body}>
@@ -114,7 +124,7 @@ function MarkdownNode({ data }) {
 }
 
 // Shared component for nodes that display RDF via rdf-editor web component
-function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle }) {
+function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle, onFocus }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -135,7 +145,9 @@ function RdfDisplayNode({ color, label, sub, target = false, source = false, rdf
     <div style={wrap(color)}>
       {target && <Handle type="target" position={Position.Left} />}
       {source && <Handle type="source" position={Position.Right} />}
-      <div style={head(color)}><Title text={label} /><Badge label={sub} /></div>
+      <div style={head(color, true)} onClick={() => onFocus?.()}>
+        <Title text={label} /><Badge label={sub} />
+      </div>
       <div style={body}>
         <rdf-editor ref={ref} style={{ flex: 1, width: '100%', minHeight: 0 }} />
       </div>
@@ -147,7 +159,7 @@ function FacadeNode({ data }) {
   return (
     <RdfDisplayNode
       color={COLORS.facade} label="Facade RDF" sub="intermediate"
-      target source rdfDataset={data.rdfDataset}
+      target source rdfDataset={data.rdfDataset} onFocus={data.onFocus}
     />
   )
 }
@@ -156,7 +168,7 @@ function SemanticNode({ data }) {
   return (
     <RdfDisplayNode
       color={COLORS.semantic} label="Target RDF" sub="output"
-      target rdfDataset={data.rdfDataset} turtle={data.turtle}
+      target rdfDataset={data.rdfDataset} turtle={data.turtle} onFocus={data.onFocus}
     />
   )
 }
@@ -188,7 +200,7 @@ function TransformNode({ data }) {
     <div style={wrap(COLORS.transform)}>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
-      <div style={head(COLORS.transform)}>
+      <div style={head(COLORS.transform, true)} onClick={() => data.onFocus?.()}>
         <Title text={isN3 ? 'N3 Rules' : 'SPARQL CONSTRUCT'} />
         <Badge label={isN3 ? 'eyeling' : 'editable'} />
       </div>
@@ -234,6 +246,92 @@ const initialEdges = [
   { id: 'e3', source: 'transform', target: 'semantic',  animated: true },
 ]
 
+// ─── Focus view ───────────────────────────────────────────────────────────────
+
+function FocusView({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
+                     facadeDataset, semanticDataset, semanticTurtle, mode, example, onBack }) {
+  const rdfRef = useRef(null)
+  const sparqlRef = useRef(null)
+  const onChangeRef = useRef(null)
+  onChangeRef.current = mode === 'n3rules' ? setN3rules : setSparql
+
+  const color = COLORS[nodeId] ?? '#888'
+
+  // Sync rdf-editor for facade/semantic
+  useEffect(() => {
+    const el = rdfRef.current
+    if (!el) return
+    customElements.whenDefined('rdf-editor').then(() => {
+      el.mediaType = 'text/turtle'
+      if (nodeId === 'facade') {
+        if (facadeDataset != null) { el.dataset = facadeDataset; el.prefixes = nsPrefixes }
+      } else if (nodeId === 'semantic') {
+        if (semanticDataset != null) { el.dataset = semanticDataset; el.prefixes = nsPrefixes }
+        else if (semanticTurtle != null) { el.value = semanticTurtle }
+      }
+    })
+  }, [nodeId, facadeDataset, semanticDataset, semanticTurtle])
+
+  // Sync sparql-editor value when example changes
+  useEffect(() => {
+    if (nodeId !== 'transform' || mode !== 'sparql') return
+    customElements.whenDefined('sparql-editor').then(() => {
+      if (sparqlRef.current) sparqlRef.current.value = sparql ?? ''
+    })
+  }, [nodeId, example?.id, mode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Attach sparql-editor change listener
+  useEffect(() => {
+    const el = sparqlRef.current
+    if (!el || nodeId !== 'transform' || mode !== 'sparql') return
+    const handler = (e) => { if (!e.detail?.error) onChangeRef.current?.(e.detail.value) }
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [nodeId, mode])
+
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      {/* Focus header */}
+      <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <button
+          onClick={onBack}
+          style={{ background: 'none', border: '1px solid #ccc', borderRadius: 4, padding: '4px 10px', cursor: 'pointer', fontSize: 13 }}
+        >← Back</button>
+        <span style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>{NODE_LABELS[nodeId]}</span>
+        {example?.description && (
+          <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1 }}>{example.description}</span>
+        )}
+      </div>
+      {/* Content */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {nodeId === 'markdown' && (
+          <textarea
+            style={{ flex: 1, border: 'none', padding: 16, fontFamily: 'monospace', fontSize: 13, resize: 'none', outline: 'none', minHeight: 0, width: '100%', boxSizing: 'border-box' }}
+            value={markdown ?? ''}
+            onChange={(e) => setMarkdown(e.target.value)}
+            spellCheck={false}
+          />
+        )}
+        {(nodeId === 'facade' || nodeId === 'semantic') && (
+          <rdf-editor ref={rdfRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        )}
+        {nodeId === 'transform' && (
+          mode === 'n3rules' ? (
+            <textarea
+              style={{ flex: 1, border: 'none', padding: 16, fontFamily: 'monospace', fontSize: 13, resize: 'none', outline: 'none', minHeight: 0, width: '100%', boxSizing: 'border-box' }}
+              value={n3rules ?? ''}
+              onChange={(e) => setN3rules(e.target.value)}
+              spellCheck={false}
+            />
+          ) : (
+            <sparql-editor ref={sparqlRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
+          )
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export function App() {
@@ -247,6 +345,7 @@ export function App() {
   const [facadeDataset, setFacadeDataset]   = useState(null)
   const [semanticDataset, setSemanticDataset] = useState(null)
   const [semanticTurtle, setSemanticTurtle]   = useState(null)
+  const [focusedNodeId, setFocusedNodeId] = useState(null)
 
   const mode = example?.n3rules ? 'n3rules' : 'sparql'
 
@@ -303,17 +402,18 @@ export function App() {
   // ── Sync pipeline state into React Flow node data ──
   useEffect(() => {
     setNodes(prev => prev.map(node => {
-      if (node.id === 'markdown')  return { ...node, data: { markdown, onChange: setMarkdown } }
-      if (node.id === 'facade')    return { ...node, data: { rdfDataset: facadeDataset } }
+      if (node.id === 'markdown')  return { ...node, data: { markdown, onChange: setMarkdown, onFocus: () => setFocusedNodeId('markdown') } }
+      if (node.id === 'facade')    return { ...node, data: { rdfDataset: facadeDataset, onFocus: () => setFocusedNodeId('facade') } }
       if (node.id === 'transform') return { ...node, data: {
         mode,
         value: mode === 'n3rules' ? n3rules : sparql,
         onChange: mode === 'n3rules' ? setN3rules : setSparql,
         exampleId: example.id,
+        onFocus: () => setFocusedNodeId('transform'),
       }}
       if (node.id === 'semantic')  return { ...node, data: mode === 'n3rules'
-        ? { turtle: semanticTurtle }
-        : { rdfDataset: semanticDataset }
+        ? { turtle: semanticTurtle, onFocus: () => setFocusedNodeId('semantic') }
+        : { rdfDataset: semanticDataset, onFocus: () => setFocusedNodeId('semantic') }
       }
       return node
     }))
@@ -331,26 +431,41 @@ export function App() {
         >
           {examples.map(ex => <option key={ex.id} value={ex.id}>{ex.title}</option>)}
         </select>
-        {example?.description && (
+        {example?.description && !focusedNodeId && (
           <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic' }}>{example.description}</span>
         )}
       </div>
 
-      {/* Canvas */}
+      {/* Canvas or Focus view */}
       <div style={{ flex: 1, minHeight: 0 }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.1 }}
-          deleteKeyCode={null}
-        >
-          <Background />
-          <Controls />
-        </ReactFlow>
+        {focusedNodeId ? (
+          <FocusView
+            nodeId={focusedNodeId}
+            markdown={markdown} setMarkdown={setMarkdown}
+            sparql={sparql} setSparql={setSparql}
+            n3rules={n3rules} setN3rules={setN3rules}
+            facadeDataset={facadeDataset}
+            semanticDataset={semanticDataset}
+            semanticTurtle={semanticTurtle}
+            mode={mode}
+            example={example}
+            onBack={() => setFocusedNodeId(null)}
+          />
+        ) : (
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.1 }}
+            deleteKeyCode={null}
+          >
+            <Background />
+            <Controls />
+          </ReactFlow>
+        )}
       </div>
     </div>
   )
