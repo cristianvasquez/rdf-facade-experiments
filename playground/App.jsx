@@ -7,7 +7,7 @@ import {
 import YAML from 'yaml'
 import rdf from 'rdf-ext'
 import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
-import { Store, Writer as N3Writer } from 'n3'
+import { Store, Writer as N3Writer, Parser as N3Parser } from 'n3'
 import eyeling from 'eyeling/eyeling.js'
 import 'rdf-elements/rdf-elements.js'
 import { ns } from '../src/namespaces.js'
@@ -56,6 +56,18 @@ function quadsToTurtle(quads) {
     const w = new N3Writer()
     w.addQuads(quads)
     w.end((err, r) => err ? reject(err) : resolve(r))
+  })
+}
+
+function turtleToDataset(turtle) {
+  return new Promise((resolve, reject) => {
+    const parser = new N3Parser()
+    const quads = []
+    parser.parse(turtle, (err, quad) => {
+      if (err) return reject(err)
+      if (quad) quads.push(quad)
+      else resolve(rdf.dataset(quads))
+    })
   })
 }
 
@@ -123,7 +135,7 @@ function MarkdownNode({ data }) {
   )
 }
 
-function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle, onFocus }) {
+function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle, error, onFocus }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -148,7 +160,10 @@ function RdfDisplayNode({ color, label, sub, target = false, source = false, rdf
         <Title text={label} /><Badge label={sub} />
       </div>
       <div style={body}>
-        <rdf-editor ref={ref} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        {error
+          ? <div style={{ padding: 12, color: '#c0392b', fontFamily: 'monospace', fontSize: 12, whiteSpace: 'pre-wrap', overflowY: 'auto' }}>{error}</div>
+          : <rdf-editor ref={ref} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        }
       </div>
     </div>
   )
@@ -167,7 +182,7 @@ function SemanticNode({ data }) {
   return (
     <RdfDisplayNode
       color={COLORS.semantic} label="Target RDF" sub="output"
-      target rdfDataset={data.rdfDataset} turtle={data.turtle} onFocus={data.onFocus}
+      target rdfDataset={data.rdfDataset} error={data.error} onFocus={data.onFocus}
     />
   )
 }
@@ -445,6 +460,7 @@ export function App() {
   const [facadeDataset, setFacadeDataset]   = useState(null)
   const [semanticDataset, setSemanticDataset] = useState(null)
   const [semanticTurtle, setSemanticTurtle]   = useState(null)
+  const [pipelineError, setPipelineError]     = useState(null)
   const [focusedNodeId, setFocusedNodeId] = useState(null)
   const [splitNodeId, setSplitNodeId]     = useState(null)
 
@@ -495,6 +511,7 @@ export function App() {
   useEffect(() => {
     let cancelled = false
     async function run() {
+      setPipelineError(null)
       try {
         let facadeQuads
         if (example.facade === 'facade-remark') {
@@ -513,7 +530,8 @@ export function App() {
           const factsN3 = await quadsToTurtle(facadeQuads)
           if (cancelled) return
           const result = eyeling.reasonStream(factsN3 + '\n' + n3rules, { includeInputFactsInClosure: false })
-          if (!cancelled) { setSemanticTurtle(result.closureN3 ?? ''); setSemanticDataset(null) }
+          const dataset = await turtleToDataset(result.closureN3 ?? '')
+          if (!cancelled) { setSemanticDataset(dataset); setSemanticTurtle(null) }
         } else {
           if (!sparql) return
           const store = new Store(facadeQuads)
@@ -521,7 +539,7 @@ export function App() {
           const qquads = await qr.toArray()
           if (!cancelled) { setSemanticDataset(rdf.dataset(qquads)); setSemanticTurtle(null) }
         }
-      } catch (e) { console.error('Pipeline error:', e) }
+      } catch (e) { if (!cancelled) setPipelineError(e?.message ?? String(e)) }
     }
     run()
     return () => { cancelled = true }
@@ -539,13 +557,10 @@ export function App() {
         exampleId: example.id,
         onFocus: () => setFocusedNodeId('transform'),
       }}
-      if (node.id === 'semantic')  return { ...node, data: mode === 'n3rules'
-        ? { turtle: semanticTurtle, onFocus: () => setFocusedNodeId('semantic') }
-        : { rdfDataset: semanticDataset, onFocus: () => setFocusedNodeId('semantic') }
-      }
+      if (node.id === 'semantic')  return { ...node, data: { rdfDataset: semanticDataset, error: pipelineError, onFocus: () => setFocusedNodeId('semantic') } }
       return node
     }))
-  }, [markdown, facadeDataset, semanticDataset, semanticTurtle, sparql, n3rules, mode, example]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [markdown, facadeDataset, semanticDataset, semanticTurtle, pipelineError, sparql, n3rules, mode, example]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
