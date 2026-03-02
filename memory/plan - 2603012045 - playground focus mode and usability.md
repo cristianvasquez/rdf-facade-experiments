@@ -39,14 +39,16 @@ While in focus mode, arrow buttons (or keyboard) cycle through pipeline steps wi
    - => keyboard `ArrowLeft`/`ArrowRight` navigate when active element is not textarea/input
    - => `a4c803d` feat: add pipeline navigation in focus mode
 
-### Phase 3 - Split view (two nodes) - status: open
+### Phase 3 - Split view (two nodes) - status: done
 
 Show two pipeline nodes side by side in focus mode — useful for comparing markdown input with facade output, or transform with semantic output.
 
-1. [ ] Add split view to `FocusView`
-   - a split button in focus mode opens a second slot
-   - second slot independently navigable
-   - pairs naturally: markdown+facade, facade+transform, transform+semantic
+1. [x] Add split view to `FocusView`
+   - => `⊞ Split` button in single-pane header opens second slot (defaults to next node, or prev if at end)
+   - => two-column layout: each column has independent `PaneNav` (‹ / ›) and `FocusPaneContent`
+   - => `⊠ Close split` returns to single-pane view; `← Back` resets both panes
+   - => `FocusPaneContent` extracted as reusable component; keyboard nav unchanged (controls left pane)
+   - => `d317b3a` feat: add split view in focus mode
 
 ### Phase 4 - Example context - status: open
 
@@ -75,3 +77,4 @@ Examples should explain themselves to colleagues new to the facade idea.
 
 - 2603021 — Phase 1 complete: focus mode implemented in App.jsx. Click any node header to enter full-height view; ← Back returns to flow. All four node types (markdown, facade, transform, semantic) supported.
 - 2603022 — Phase 2 complete: prev/next nav buttons in focus header with position indicator; keyboard ArrowLeft/Right navigate when not editing.
+- 2603023 — Phase 3 complete: split view with ⊞ Split button; two independently navigable panes; FocusPaneContent extracted as shared component.
