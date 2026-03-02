@@ -29,15 +29,15 @@ Click the header again (or a back button) → return to the flow.
    - => "← Back" button returns to flow; description shown in focus header
    - => `290b56a` feat: add focus mode
 
-### Phase 2 - Pipeline navigation in focus mode - status: open
+### Phase 2 - Pipeline navigation in focus mode - status: done
 
 While in focus mode, arrow buttons (or keyboard) cycle through pipeline steps without going back to the flow.
 
-1. [ ] Add prev/next navigation to `FocusView`
-   - pipeline order: markdown → facade → transform → semantic
-   - `←` and `→` buttons navigate between nodes
-   - show current position (e.g. "2 / 4" or node name as breadcrumb)
-   - keyboard arrow keys also navigate (when not editing text)
+1. [x] Add prev/next navigation to `FocusView`
+   - => `‹ [prev label]` and `[next label] ›` buttons in focus header; disabled at ends
+   - => position shown as `NodeName (2 / 4)`
+   - => keyboard `ArrowLeft`/`ArrowRight` navigate when active element is not textarea/input
+   - => `a4c803d` feat: add pipeline navigation in focus mode
 
 ### Phase 3 - Split view (two nodes) - status: open
 
@@ -74,3 +74,4 @@ Examples should explain themselves to colleagues new to the facade idea.
 ## Progress Log
 
 - 2603021 — Phase 1 complete: focus mode implemented in App.jsx. Click any node header to enter full-height view; ← Back returns to flow. All four node types (markdown, facade, transform, semantic) supported.
+- 2603022 — Phase 2 complete: prev/next nav buttons in focus header with position indicator; keyboard ArrowLeft/Right navigate when not editing.
