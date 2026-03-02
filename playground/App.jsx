@@ -248,14 +248,35 @@ const initialEdges = [
 
 // ─── Focus view ───────────────────────────────────────────────────────────────
 
+const btnStyle = (disabled) => ({
+  background: 'none', border: '1px solid #ccc', borderRadius: 4, padding: '4px 10px',
+  cursor: disabled ? 'default' : 'pointer', fontSize: 13,
+  color: disabled ? '#bbb' : '#333', opacity: disabled ? 0.5 : 1,
+})
+
 function FocusView({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
-                     facadeDataset, semanticDataset, semanticTurtle, mode, example, onBack }) {
+                     facadeDataset, semanticDataset, semanticTurtle, mode, example, onBack, onNavigate }) {
   const rdfRef = useRef(null)
   const sparqlRef = useRef(null)
   const onChangeRef = useRef(null)
   onChangeRef.current = mode === 'n3rules' ? setN3rules : setSparql
 
   const color = COLORS[nodeId] ?? '#888'
+  const idx = PIPELINE_NODES.indexOf(nodeId)
+  const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
+  const nextId = idx < PIPELINE_NODES.length - 1 ? PIPELINE_NODES[idx + 1] : null
+
+  // Keyboard arrow navigation (skip when editing text)
+  useEffect(() => {
+    function handleKey(e) {
+      const tag = document.activeElement?.tagName?.toLowerCase()
+      if (tag === 'textarea' || tag === 'input') return
+      if (e.key === 'ArrowLeft'  && prevId) { e.preventDefault(); onNavigate(prevId) }
+      if (e.key === 'ArrowRight' && nextId) { e.preventDefault(); onNavigate(nextId) }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [prevId, nextId, onNavigate])
 
   // Sync rdf-editor for facade/semantic
   useEffect(() => {
@@ -292,14 +313,20 @@ function FocusView({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       {/* Focus header */}
-      <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-        <button
-          onClick={onBack}
-          style={{ background: 'none', border: '1px solid #ccc', borderRadius: 4, padding: '4px 10px', cursor: 'pointer', fontSize: 13 }}
-        >← Back</button>
-        <span style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>{NODE_LABELS[nodeId]}</span>
+      <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <button onClick={onBack} style={btnStyle(false)}>← Back</button>
+        <span style={{ width: 1, height: 20, background: '#ddd', margin: '0 4px' }} />
+        <button onClick={() => prevId && onNavigate(prevId)} disabled={!prevId} style={btnStyle(!prevId)}>
+          ‹ {prevId ? NODE_LABELS[prevId] : ''}
+        </button>
+        <span style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a', padding: '0 4px' }}>
+          {NODE_LABELS[nodeId]} <span style={{ fontWeight: 400, fontSize: 12, color: '#999' }}>({idx + 1} / {PIPELINE_NODES.length})</span>
+        </span>
+        <button onClick={() => nextId && onNavigate(nextId)} disabled={!nextId} style={btnStyle(!nextId)}>
+          {nextId ? NODE_LABELS[nextId] : ''} ›
+        </button>
         {example?.description && (
-          <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1 }}>{example.description}</span>
+          <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
         )}
       </div>
       {/* Content */}
@@ -450,6 +477,7 @@ export function App() {
             mode={mode}
             example={example}
             onBack={() => setFocusedNodeId(null)}
+            onNavigate={setFocusedNodeId}
           />
         ) : (
           <ReactFlow
