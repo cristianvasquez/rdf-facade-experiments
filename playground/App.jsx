@@ -530,7 +530,10 @@ export function App() {
           const factsN3 = await quadsToTurtle(facadeQuads)
           if (cancelled) return
           const result = eyeling.reasonStream(factsN3 + '\n' + n3rules, { includeInputFactsInClosure: false })
-          const dataset = await turtleToDataset(result.closureN3 ?? '')
+          const prefixPreamble = Object.entries(result.prefixes?.map ?? {})
+            .map(([p, ns]) => `@prefix ${p}: <${ns}> .`)
+            .join('\n')
+          const dataset = await turtleToDataset(prefixPreamble + '\n' + (result.closureN3 ?? ''))
           if (!cancelled) { setSemanticDataset(dataset); setSemanticTurtle(null) }
         } else {
           if (!sparql) return
