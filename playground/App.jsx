@@ -148,7 +148,7 @@ function RdfDisplayNode({ color, label, sub, target = false, source = false, rdf
         <Title text={label} /><Badge label={sub} />
       </div>
       <div style={body}>
-        <rdf-editor ref={ref} style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        <rdf-editor ref={ref} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0 }} />
       </div>
     </div>
   )
@@ -313,7 +313,7 @@ function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3
         />
       )}
       {(nodeId === 'facade' || nodeId === 'semantic') && (
-        <rdf-editor ref={rdfRef} style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        <rdf-editor ref={rdfRef} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0 }} />
       )}
       {nodeId === 'transform' && (
         mode === 'n3rules' ? (
@@ -375,21 +375,21 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
   if (splitNodeId) {
     return (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-        {/* Split header — single nav that slides the window */}
+        {/* Split header: Back + close-split left, nav right */}
         <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: '1px solid #d0d0d0', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <button onClick={onBack} style={btnStyle(false)}>← Back</button>
           <span style={divider} />
           <button onClick={onCloseSplit} style={btnStyle(false)}>⊠ Close split</button>
-          <span style={divider} />
+          {example?.description && (
+            <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
+          )}
+          {!example?.description && <span style={{ flex: 1 }} />}
           <button onClick={onSplitPrev} disabled={!canSplitPrev} style={btnStyle(!canSplitPrev)}>‹</button>
           <span style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a', padding: '0 4px' }}>
             {NODE_LABELS[nodeId]} · {NODE_LABELS[splitNodeId]}
             <span style={{ fontWeight: 400, fontSize: 12, color: '#999' }}> ({idx + 1}–{idx + 2} / {PIPELINE_NODES.length})</span>
           </span>
           <button onClick={onSplitNext} disabled={!canSplitNext} style={btnStyle(!canSplitNext)}>›</button>
-          {example?.description && (
-            <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
-          )}
         </div>
         {/* Two panes */}
         <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
@@ -408,10 +408,13 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-      {/* Single-pane header */}
+      {/* Single-pane header: Back left, nav+split right */}
       <div style={{ padding: '8px 16px', background: '#f8f9fa', borderBottom: `3px solid ${color}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <button onClick={onBack} style={btnStyle(false)}>← Back</button>
-        <span style={divider} />
+        {example?.description && (
+          <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
+        )}
+        {!example?.description && <span style={{ flex: 1 }} />}
         <button onClick={() => prevId && onNavigate(prevId)} disabled={!prevId} style={btnStyle(!prevId)}>
           ‹ {prevId ? NODE_LABELS[prevId] : ''}
         </button>
@@ -423,9 +426,6 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
         </button>
         <span style={divider} />
         <button onClick={onSplit} style={btnStyle(false)}>⊞ Split</button>
-        {example?.description && (
-          <span style={{ color: '#666', fontSize: 12, fontStyle: 'italic', flex: 1, marginLeft: 8 }}>{example.description}</span>
-        )}
       </div>
       <FocusPaneContent key={nodeId} nodeId={nodeId} {...contentProps} />
     </div>
