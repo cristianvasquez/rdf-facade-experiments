@@ -24,17 +24,19 @@ Related fix already applied (2603021022): N3 closure output is now parsed into a
 
 Goal: Confirm whether N3 edits now trigger correct output updates after today's fix, and ensure errors are visible rather than silent.
 
-1. [ ] Add pipeline error state and surface it in the UI
+1. [x] Add pipeline error state and surface it in the UI
    - Add `const [pipelineError, setPipelineError] = useState(null)` in App
    - In the `catch(e)` block, call `setPipelineError(e.message ?? String(e))`
    - Clear error at the start of each run: `setPipelineError(null)`
    - Display error visually in the SemanticNode (e.g. red text below the rdf-editor)
+   - => `be75468` — error replaces rdf-editor in the body when present (red monospace text)
 
 2. [ ] Verify N3 reactivity end-to-end
    - Load example `05-team-alpha-n3`
    - Edit an N3 rule (e.g. change `:Team` to `:Group`) and confirm the Target RDF updates
    - Confirm the output is now prettified with correct prefixes (from today's fix)
    - If still broken: add a `console.log` trace inside the pipeline effect to confirm it fires and check for caught errors
+   - => P1-O1: `closureN3` from eyeling has no `@prefix` preamble — triples use short prefixed names like `:Team` without declarations, causing N3Parser to throw. Error appeared in the UI (Phase 1.1 working). Fix: prepend `@prefix` declarations from `result.prefixes.map` before parsing (`9e39a1a`).
 
 ### Phase 2 - Extract usePipeline hook - status: open
 
@@ -90,3 +92,4 @@ Implement this as two separate effects (or two hooks):
 
 - 2603021022 — Plan created. N3 prefix fix already applied (closureN3 → dataset via turtleToDataset).
 - 2603021022 — Added two-stage pipeline constraint: only subsequent stages re-run on input change.
+- 2603021022 — Phase 1.1 done. Phase 1.2: found root cause (missing prefix preamble in closureN3), fixed with prefix prepend.
