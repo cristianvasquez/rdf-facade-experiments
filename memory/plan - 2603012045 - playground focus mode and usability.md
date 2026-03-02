@@ -1,6 +1,6 @@
 ---
 tldr: Improve playground UX with focus mode (click node to expand), pipeline navigation, and better example context
-status: active
+status: completed
 ---
 
 # Plan: Playground focus mode and usability
@@ -50,24 +50,29 @@ Show two pipeline nodes side by side in focus mode — useful for comparing mark
    - => `FocusPaneContent` extracted as reusable component; keyboard nav unchanged (controls left pane)
    - => `d317b3a` feat: add split view in focus mode
 
-### Phase 4 - Example context - status: open
+### Phase 4 - Example context - status: done
 
 Examples should explain themselves to colleagues new to the facade idea.
 
-1. [ ] Add description to focus mode header
-   - show the current example's `description` field (from frontmatter) in the focus view header
-   - if empty, no placeholder needed — just absent
-2. [ ] Audit example descriptions
-   - check all 5 examples have a useful `description:` in frontmatter
-   - update any that are missing or too terse
+1. [x] Add description to focus mode header
+   - => description shown in focus header (both single-pane and split modes) — done in Phase 1
+   - => hidden from toolbar when in focus view (no duplicate)
+2. [x] Audit example descriptions
+   - => all 5 examples have `description:` in frontmatter
+   - => 01: "Using emphasis (*text*) to denote relationships" ✓
+   - => 02: "Explicit entity and property declarations" ✓
+   - => 03: "Using nested markdown lists to express hierarchies" ✓
+   - => 04: "Using markdown tables to represent structured data" ✓
+   - => 05: "Same document as example-01, using remark tree facade and N3 rules instead of SPARQL CONSTRUCT" ✓
+   - => no updates needed
 
 ## Verification
 
-- [ ] Click any node header → enters focus mode with full-height editable content
-- [ ] Edit markdown in focus mode → facade and semantic update reactively
-- [ ] Arrow buttons navigate between all 4 pipeline steps
-- [ ] Two nodes can be shown side by side
-- [ ] Each example has a description that a new colleague can follow
+- [x] Click any node header → enters focus mode with full-height editable content
+- [x] Edit markdown in focus mode → facade and semantic update reactively
+- [x] Arrow buttons navigate between all 4 pipeline steps
+- [x] Two nodes can be shown side by side
+- [x] Each example has a description that a new colleague can follow
 
 ## Adjustments
 
@@ -78,3 +83,4 @@ Examples should explain themselves to colleagues new to the facade idea.
 - 2603021 — Phase 1 complete: focus mode implemented in App.jsx. Click any node header to enter full-height view; ← Back returns to flow. All four node types (markdown, facade, transform, semantic) supported.
 - 2603022 — Phase 2 complete: prev/next nav buttons in focus header with position indicator; keyboard ArrowLeft/Right navigate when not editing.
 - 2603023 — Phase 3 complete: split view with ⊞ Split button; two independently navigable panes; FocusPaneContent extracted as shared component.
+- 2603024 — Phase 4 complete: all 5 examples have clear descriptions; description already shown in focus headers from Phase 1. Plan complete.
