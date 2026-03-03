@@ -13,6 +13,7 @@ const nodeBuiltins = [
 
 export default defineConfig({
   root: 'playground',
+  base: process.env.GITHUB_PAGES ? '/rdf-facade-experiments/' : '/',
   plugins: [react()],
   optimizeDeps: {
     include: ['eyeling/eyeling.js'],
