@@ -14,6 +14,9 @@ const ns = {
   fxr: rdf.namespace('http://example.org/facade-remark#'),
   rmk: rdf.namespace('http://example.org/remark#'),
 
+  // Excel Facade
+  xls: rdf.namespace('http://example.org/excel#'),
+
   ex: rdf.namespace('http://example.org/'),
   foaf: rdf.namespace('http://xmlns.com/foaf/0.1/'),
 
