@@ -109,7 +109,7 @@ function MarkdownNode({ data }) {
   )
 }
 
-function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle, error, onFocus }) {
+function RdfDisplayNode({ color, label, sub, target = false, source = false, rdfDataset, turtle, error, isRunning, onFocus }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -131,7 +131,7 @@ function RdfDisplayNode({ color, label, sub, target = false, source = false, rdf
       {target && <Handle type="target" position={Position.Left} />}
       {source && <Handle type="source" position={Position.Right} />}
       <div style={head(color, true)} onClick={() => onFocus?.()}>
-        <Title text={label} /><Badge label={sub} />
+        <Title text={label} /><Badge label={isRunning ? 'computing…' : sub} />
       </div>
       <div style={body}>
         {error
@@ -156,7 +156,7 @@ function SemanticNode({ data }) {
   return (
     <RdfDisplayNode
       color={COLORS.semantic} label="Target RDF" sub="output"
-      target rdfDataset={data.rdfDataset} error={data.error} onFocus={data.onFocus}
+      target rdfDataset={data.rdfDataset} error={data.error} isRunning={data.isRunning} onFocus={data.onFocus}
     />
   )
 }
