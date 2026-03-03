@@ -5,14 +5,9 @@ import {
   Handle, Position,
 } from '@xyflow/react'
 import YAML from 'yaml'
-import rdf from 'rdf-ext'
-import { QueryEngine } from '@comunica/query-sparql-rdfjs-lite'
-import { Store, Writer as N3Writer, Parser as N3Parser } from 'n3'
-import eyeling from 'eyeling/eyeling.js'
 import 'rdf-elements/rdf-elements.js'
 import { ns } from '../src/namespaces.js'
-import { markdownToRdf as remarkToRdf } from '../src/remark-facade.js'
-import { markdownToRdf as facadeXToRdf } from '../src/streaming-facade-x.js'
+import { usePipeline } from './usePipeline.js'
 
 // ─── Example loading ──────────────────────────────────────────────────────────
 
@@ -48,28 +43,7 @@ const examples = Object.entries(exampleFiles)
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
-const queryEngine = new QueryEngine()
 const nsPrefixes = new Map(Object.entries(ns).map(([k, v]) => [k, v()]))
-
-function quadsToTurtle(quads) {
-  return new Promise((resolve, reject) => {
-    const w = new N3Writer()
-    w.addQuads(quads)
-    w.end((err, r) => err ? reject(err) : resolve(r))
-  })
-}
-
-function turtleToDataset(turtle) {
-  return new Promise((resolve, reject) => {
-    const parser = new N3Parser()
-    const quads = []
-    parser.parse(turtle, (err, quad) => {
-      if (err) return reject(err)
-      if (quad) quads.push(quad)
-      else resolve(rdf.dataset(quads))
-    })
-  })
-}
 
 // ─── Node styles ──────────────────────────────────────────────────────────────
 
@@ -271,7 +245,7 @@ const divider = { display: 'inline-block', width: 1, height: 20, background: '#d
 // Content area for one pipeline node. Keyed by nodeId at call sites to force
 // a fresh mount (and fresh web component) when the node changes.
 function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
-                             facadeDataset, semanticDataset, semanticTurtle, mode, example }) {
+                             facadeDataset, semanticDataset, mode, example }) {
   const rdfRef = useRef(null)
   const sparqlRef = useRef(null)
   const onChangeRef = useRef(null)
@@ -296,9 +270,8 @@ function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3
     customElements.whenDefined('rdf-editor').then(() => {
       el.mediaType = 'text/turtle'
       if (semanticDataset != null) { el.dataset = semanticDataset; el.prefixes = nsPrefixes }
-      else if (semanticTurtle) { el.value = semanticTurtle }
     })
-  }, [nodeId, semanticDataset, semanticTurtle])
+  }, [nodeId, semanticDataset])
 
   // Sync sparql-editor value when example changes
   useEffect(() => {
@@ -358,7 +331,7 @@ function PaneLabel({ nodeId }) {
 function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSplit,
                      onSplitPrev, onSplitNext,
                      markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules,
-                     facadeDataset, semanticDataset, semanticTurtle, mode, example }) {
+                     facadeDataset, semanticDataset, mode, example }) {
   const color = COLORS[nodeId] ?? '#888'
   const idx = PIPELINE_NODES.indexOf(nodeId)
   const prevId = idx > 0 ? PIPELINE_NODES[idx - 1] : null
@@ -385,7 +358,7 @@ function FocusView({ nodeId, splitNodeId, onBack, onNavigate, onSplit, onCloseSp
     return () => window.removeEventListener('keydown', handleKey)
   }, [prevId, nextId, onNavigate, splitNodeId, canSplitPrev, canSplitNext, onSplitPrev, onSplitNext])
 
-  const contentProps = { markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules, facadeDataset, semanticDataset, semanticTurtle, mode, example }
+  const contentProps = { markdown, setMarkdown, sparql, setSparql, n3rules, setN3rules, facadeDataset, semanticDataset, mode, example }
 
   if (splitNodeId) {
     return (
@@ -457,14 +430,10 @@ export function App() {
   const [markdown, setMarkdown]       = useState(examples[0]?.markdown ?? '')
   const [sparql, setSparql]           = useState(examples[0]?.sparql ?? '')
   const [n3rules, setN3rules]         = useState(examples[0]?.n3rules ?? '')
-  const [facadeDataset, setFacadeDataset]   = useState(null)
-  const [semanticDataset, setSemanticDataset] = useState(null)
-  const [semanticTurtle, setSemanticTurtle]   = useState(null)
-  const [pipelineError, setPipelineError]     = useState(null)
   const [focusedNodeId, setFocusedNodeId] = useState(null)
   const [splitNodeId, setSplitNodeId]     = useState(null)
 
-  const mode = example?.n3rules ? 'n3rules' : 'sparql'
+  const { facadeDataset, semanticDataset, error: pipelineError, isRunning, mode } = usePipeline({ markdown, sparql, n3rules, example })
 
   function loadExample(id) {
     const ex = examples.find(e => e.id === id)
@@ -473,9 +442,6 @@ export function App() {
     setMarkdown(ex.markdown)
     setSparql(ex.sparql)
     setN3rules(ex.n3rules)
-    setFacadeDataset(null)
-    setSemanticDataset(null)
-    setSemanticTurtle(null)
   }
 
   function handleBack() {
@@ -507,47 +473,6 @@ export function App() {
     }
   }
 
-  // ── Pipeline ──
-  useEffect(() => {
-    let cancelled = false
-    async function run() {
-      setPipelineError(null)
-      try {
-        let facadeQuads
-        if (example.facade === 'facade-remark') {
-          facadeQuads = remarkToRdf(markdown)
-        } else {
-          facadeQuads = await facadeXToRdf(markdown, {
-            facade: example.facade,
-            useNumbered: example.preserveOrder,
-            useRdfsMember: !example.preserveOrder,
-          })
-        }
-        if (cancelled) return
-        setFacadeDataset(rdf.dataset(facadeQuads))
-
-        if (mode === 'n3rules') {
-          const factsN3 = await quadsToTurtle(facadeQuads)
-          if (cancelled) return
-          const result = eyeling.reasonStream(factsN3 + '\n' + n3rules, { includeInputFactsInClosure: false })
-          const prefixPreamble = Object.entries(result.prefixes?.map ?? {})
-            .map(([p, ns]) => `@prefix ${p}: <${ns}> .`)
-            .join('\n')
-          const dataset = await turtleToDataset(prefixPreamble + '\n' + (result.closureN3 ?? ''))
-          if (!cancelled) { setSemanticDataset(dataset); setSemanticTurtle(null) }
-        } else {
-          if (!sparql) return
-          const store = new Store(facadeQuads)
-          const qr = await queryEngine.queryQuads(sparql, { sources: [store] })
-          const qquads = await qr.toArray()
-          if (!cancelled) { setSemanticDataset(rdf.dataset(qquads)); setSemanticTurtle(null) }
-        }
-      } catch (e) { if (!cancelled) setPipelineError(e?.message ?? String(e)) }
-    }
-    run()
-    return () => { cancelled = true }
-  }, [markdown, sparql, n3rules, example, mode])
-
   // ── Sync pipeline state into React Flow node data ──
   useEffect(() => {
     setNodes(prev => prev.map(node => {
@@ -560,10 +485,10 @@ export function App() {
         exampleId: example.id,
         onFocus: () => setFocusedNodeId('transform'),
       }}
-      if (node.id === 'semantic')  return { ...node, data: { rdfDataset: semanticDataset, error: pipelineError, onFocus: () => setFocusedNodeId('semantic') } }
+      if (node.id === 'semantic')  return { ...node, data: { rdfDataset: semanticDataset, error: pipelineError, isRunning, onFocus: () => setFocusedNodeId('semantic') } }
       return node
     }))
-  }, [markdown, facadeDataset, semanticDataset, semanticTurtle, pipelineError, sparql, n3rules, mode, example]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [markdown, facadeDataset, semanticDataset, pipelineError, isRunning, sparql, n3rules, mode, example]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
@@ -599,7 +524,6 @@ export function App() {
             n3rules={n3rules} setN3rules={setN3rules}
             facadeDataset={facadeDataset}
             semanticDataset={semanticDataset}
-            semanticTurtle={semanticTurtle}
             mode={mode}
             example={example}
           />
