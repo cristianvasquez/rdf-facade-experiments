@@ -163,6 +163,7 @@ function SemanticNode({ data }) {
 
 function TransformNode({ data }) {
   const sparqlRef = useRef(null)
+  const n3Ref = useRef(null)
   const onChangeRef = useRef(data.onChange)
   onChangeRef.current = data.onChange
 
@@ -171,6 +172,12 @@ function TransformNode({ data }) {
     customElements.whenDefined('sparql-editor').then(() => {
       if (sparqlRef.current) sparqlRef.current.value = data.value ?? ''
     })
+  }, [data.exampleId, data.mode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Imperatively reset N3 textarea when example changes (uncontrolled — avoids cursor jumps)
+  useEffect(() => {
+    if (data.mode !== 'n3rules' || !n3Ref.current) return
+    n3Ref.current.value = data.value ?? ''
   }, [data.exampleId, data.mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -193,8 +200,9 @@ function TransformNode({ data }) {
       <div style={body}>
         {isN3 ? (
           <textarea
+            ref={n3Ref}
             style={{ flex: 1, border: 'none', padding: 12, fontFamily: 'monospace', fontSize: 12, resize: 'none', outline: 'none', minHeight: 0, width: '100%' }}
-            value={data.value ?? ''}
+            defaultValue={data.value ?? ''}
             onChange={(e) => data.onChange?.(e.target.value)}
             spellCheck={false}
           />
