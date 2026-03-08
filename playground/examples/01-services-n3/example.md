@@ -11,9 +11,7 @@ n3rules: |
   @prefix log:    <http://www.w3.org/2000/10/swap/log#> .
   @prefix :       <http://example.org/data#> .
 
-  # ══════════════════════════════════════════════════════════════════════════════
-  # Pattern declarations (end-user configuration)
-  # ══════════════════════════════════════════════════════════════════════════════
+  # ═══ Pattern declarations (end-user configuration) ═══
 
   :servicesPattern a :TablePattern ;
       :hasTitle  "Services" ;
@@ -27,9 +25,7 @@ n3rules: |
                  ("Person"  :mPerson   :mPersonUrl)  ,
                  ("Email"   :mEmail    :mEmailUrl)   .
 
-  # ══════════════════════════════════════════════════════════════════════════════
-  # Domain mapping (end-user semantic output)
-  # ══════════════════════════════════════════════════════════════════════════════
+  # ═══ Domain mapping (end-user semantic output) ═══
 
   {
       ?table :matchedBy :servicesPattern .
@@ -60,7 +56,7 @@ n3rules: |
            dct:subject ?svc .
   } .
 
-  # ── Link persons to their service resource ────────────────────────────────────
+  ### Link persons to their service resource
 
   {
       ?svcTable  :matchedBy :servicesPattern .
@@ -71,12 +67,9 @@ n3rules: |
       ?personRow :maintains ?svcRow .
   } .
 
-  # ══════════════════════════════════════════════════════════════════════════════
-  # Table plugin (reusable machinery — adapted from services.n3)
-  # Note: remark: = node types, facade: = properties
-  # ══════════════════════════════════════════════════════════════════════════════
+  # ═══ Table plugin (remark: = node types, facade: = properties) ═══
 
-  # ── Cell normalization ────────────────────────────────────────────────────────
+  ### Cell normalization
 
   { ?cell a remark:tableCell ;
           facade:children [ a remark:text ; facade:value ?v ] .
@@ -91,7 +84,7 @@ n3rules: |
           facade:children [ a remark:link ; facade:url ?u ] .
   } => { ?cell :linkUrl ?u . } .
 
-  # ── Match heading ↔ table via pattern title ───────────────────────────────────
+  ### Match heading ↔ table via pattern title
 
   {
       ?pattern a :TablePattern ; :hasTitle ?text .
@@ -104,7 +97,7 @@ n3rules: |
              :heading   ?heading .
   } .
 
-  # ── Learn column positions from the (:label :textPred :linkPred) triples ──────
+  ### Learn column positions from the (:label :textPred :linkPred) triples
 
   {
       ?pattern a :TablePattern ;
@@ -118,7 +111,7 @@ n3rules: |
              :colLink (?col ?linkPred) .
   } .
 
-  # ── Mark data rows (any row that carries at least one link) ───────────────────
+  ### Mark data rows (any row that carries at least one link)
 
   {
       ?table :matchedBy ?pattern ;
@@ -130,7 +123,7 @@ n3rules: |
       ?row :dataRowOf ?table .
   } .
 
-  # ── Project text values onto each data row ────────────────────────────────────
+  ### Project text values onto each data row
 
   {
       ?table :colText (?col ?textPred) ;
@@ -143,7 +136,7 @@ n3rules: |
       ?row ?textPred ?val .
   } .
 
-  # ── Project link URLs onto each data row ──────────────────────────────────────
+  ### Project link URLs onto each data row
 
   {
       ?table :colLink (?col ?linkPred) ;
