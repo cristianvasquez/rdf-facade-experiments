@@ -136,7 +136,7 @@ function RdfDisplayNode({ color, label, sub, target = false, source = false, rdf
       <div style={body}>
         {error
           ? <div style={{ padding: 12, color: '#c0392b', fontFamily: 'monospace', fontSize: 12, whiteSpace: 'pre-wrap', overflowY: 'auto' }}>{error}</div>
-          : <rdf-editor ref={ref} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0 }} />
+          : <rdf-editor ref={ref} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0, overflow: 'auto' }} />
         }
       </div>
     </div>
@@ -309,7 +309,7 @@ function FocusPaneContent({ nodeId, markdown, setMarkdown, sparql, setSparql, n3
         />
       )}
       {(nodeId === 'facade' || nodeId === 'semantic') && (
-        <rdf-editor ref={rdfRef} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0 }} />
+        <rdf-editor ref={rdfRef} mediatype="text/turtle" style={{ flex: 1, width: '100%', minHeight: 0, overflow: 'auto' }} />
       )}
       {nodeId === 'transform' && (
         mode === 'n3rules' ? (
