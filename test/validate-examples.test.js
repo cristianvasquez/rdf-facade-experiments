@@ -5,11 +5,11 @@ import { processExample } from './process-example.js'
 import { compareSnapshot, shouldUpdateSnapshots } from './snapshot-helper.js'
 
 const EXAMPLES = [
-  '01-team-alpha-emphasis',
-  '02-entities-explicit',
-  '03-nested-lists',
-  '04-tables',
-  '05-team-alpha-n3',
+  '01-services-n3',
+  '02-team-alpha-emphasis',
+  '03-entities-explicit',
+  '04-nested-lists',
+  '05-tables',
 ]
 
 const UPDATE_SNAPSHOTS = shouldUpdateSnapshots()

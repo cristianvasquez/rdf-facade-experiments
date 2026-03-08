@@ -1,0 +1,41 @@
+@prefix data: <http://example.org/data#>.
+@prefix dct: <http://purl.org/dc/terms/>.
+@prefix ex: <http://example.org/>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+
+[ a foaf:Person;
+  data:maintains [ a data:Service;
+      data:endpoint ex:auth;
+      data:name "Auth";
+      data:status "active";
+      data:type "REST"
+    ];
+  dct:subject "Auth";
+  foaf:mbox "mailto:alice@example.org";
+  foaf:name "Alice"
+].
+
+[ a foaf:Person;
+  data:maintains [ a data:Service;
+      data:endpoint ex:query;
+      data:name "Query";
+      data:status "active";
+      data:type "GraphQL"
+    ];
+  dct:subject "Query";
+  foaf:mbox "mailto:bob@example.org";
+  foaf:name "Bob"
+].
+
+[ a foaf:Person;
+  data:maintains [ a data:Service;
+      data:endpoint ex:notify;
+      data:name "Notify";
+      data:status "deprecated";
+      data:type "gRPC"
+    ];
+  dct:subject "Notify";
+  foaf:mbox "mailto:carol@example.org";
+  foaf:name "Carol"
+].

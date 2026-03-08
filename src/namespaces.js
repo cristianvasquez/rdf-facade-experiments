@@ -18,7 +18,9 @@ const ns = {
   xls: rdf.namespace('http://example.org/excel#'),
 
   ex: rdf.namespace('http://example.org/'),
+  data: rdf.namespace('http://example.org/data#'),
   foaf: rdf.namespace('http://xmlns.com/foaf/0.1/'),
+  dct: rdf.namespace('http://purl.org/dc/terms/'),
 
 }
 
